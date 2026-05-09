@@ -1,0 +1,28 @@
+Windows Registry Editor Version 5.00
+
+; mklink Move & Junction Tool
+; Location: D:\Users\joty79\scripts\mklink
+
+; -------- CLEANUP OLD KEYS --------
+
+[-HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource]
+[-HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget]
+
+; -------- ADD MKLINK ENTRIES --------
+
+; mklink Source (on folders)
+[HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource]
+@="mklink Source"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+
+[HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Silent.vbs\" \"%V\""
+
+; mklink Target (on background)
+[HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget]
+@="mklink Target (Junction)"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"HasLUAShield"=""
+
+[HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Target.vbs\" \"%V\""
