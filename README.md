@@ -79,7 +79,15 @@ Result
 
 ## Installation
 
-Import το registry artifact μόνο όταν θέλεις να αλλάξεις το live Explorer context menu.
+Preferred setup είναι το generated InstallerCore installer:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File "D:\Users\joty79\scripts\mklink\Install.ps1"
+```
+
+Το installer εγκαθιστά τα runtime files κάτω από `%LOCALAPPDATA%\mklink`, γράφει το current-user context menu και κρατά uninstall entry.
+
+Το `mklink.reg` μένει σαν manual/reference artifact αν θέλεις να αλλάξεις μόνο το live Explorer context menu από το working copy.
 
 ```powershell
 reg import "D:\Users\joty79\scripts\mklink\mklink.reg"
@@ -104,6 +112,11 @@ pwsh -ExecutionPolicy Bypass -File "D:\Users\joty79\scripts\mklink\MklinkManager
 
 ```text
 mklink/
+├── Install.ps1           # Generated InstallerCore installer
+├── app-metadata.json     # App/version metadata for installer
+├── .assets/
+│   └── icons/
+│       └── mklink.ico    # Context-menu icon
 ├── MklinkCore.ps1        # Shared junction logic
 ├── MklinkManager.ps1     # WinForms GUI manager
 ├── MklinkManager.vbs     # Hidden console launcher for GUI

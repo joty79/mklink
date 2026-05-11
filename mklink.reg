@@ -15,18 +15,18 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink]
 "MUIVerb"="mklink"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource]
 "MUIVerb"="Set as source"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Silent.vbs\" \"%V\""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_revert]
 "MUIVerb"="Revert junction"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 "HasLUAShield"=""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_revert\command]
@@ -34,7 +34,7 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_manager]
 "MUIVerb"="Open Manager"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 "CommandFlags"=dword:00000020
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_manager\command]
@@ -42,7 +42,7 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_clear]
 "MUIVerb"="Clear pending source"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_clear\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Clear.vbs\""
@@ -51,11 +51,11 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink]
 "MUIVerb"="mklink"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\01_createHere]
 "MUIVerb"="Create junction here"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 "HasLUAShield"=""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\01_createHere\command]
@@ -63,7 +63,7 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\02_manager]
 "MUIVerb"="Open Manager"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 "CommandFlags"=dword:00000020
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\02_manager\command]

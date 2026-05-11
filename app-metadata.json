@@ -1,0 +1,5 @@
+{
+  "name": "mklink",
+  "version": "1.0.0",
+  "description": "Windows context-menu workflow and manager for folder junctions."
+}
