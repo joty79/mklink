@@ -32,6 +32,7 @@ $g.Dispose()
 
 function Scale([int]$px) { return [int]($px * $script:dpiScale) }
 
+. "$PSScriptRoot\MklinkCore.ps1"
 
 # ─────────────────────────────────────────────────────────────────
 # Theme / Colors
@@ -60,83 +61,6 @@ $script:fontStatus    = [System.Drawing.Font]::new($script:fontFamily, 8.5, [Sys
 $script:fontBold      = [System.Drawing.Font]::new($script:fontFamily, 9, [System.Drawing.FontStyle]::Bold)
 
 # ─────────────────────────────────────────────────────────────────
-# Junction Scanner
-# ─────────────────────────────────────────────────────────────────
-function Get-UserJunctions {
-    $scanPaths = @("$env:USERPROFILE")
-    
-    $excludePatterns = @(
-        'node_modules', '.pnpm', 'AppData\Local\Application Data',
-        'AppData\Local\History', 'AppData\Local\Temporary Internet Files'
-    )
-    
-    $systemJunctions = @(
-        'Application Data', 'Cookies', 'Local Settings', 'My Documents',
-        'NetHood', 'PrintHood', 'Recent', 'SendTo', 'Start Menu', 'Templates'
-    )
-    
-    $results = [System.Collections.Generic.List[PSCustomObject]]::new()
-    
-    foreach ($root in $scanPaths) {
-        if (-not (Test-Path $root)) { continue }
-        
-        $items = Get-ChildItem -Path $root -Recurse -Depth 4 -Force `
-            -ErrorAction SilentlyContinue -Attributes ReparsePoint |
-            Where-Object { $_.LinkType -eq 'Junction' }
-        
-        foreach ($item in $items) {
-            $skip = $false
-            $itemName = $item.Name
-            $full = $item.FullName
-            
-            if ($itemName -in $systemJunctions) { continue }
-            
-            foreach ($pat in $excludePatterns) {
-                if ($full -like "*$pat*") { $skip = $true; break }
-            }
-            if ($skip) { continue }
-            
-            $target = ''
-            $valid  = $false
-            try {
-                $resolved = Get-Item -LiteralPath $full -Force -ErrorAction Stop
-                if ($resolved.Target) {
-                    $target = ($resolved.Target -join '; ')
-                    $valid  = Test-Path -LiteralPath $target -ErrorAction SilentlyContinue
-                }
-            } catch {
-                $target = '(inaccessible)'
-            }
-            
-            # Categorize
-            $category = 'Other'
-            if ($full -match 'AppData\\Roaming') {
-                $category = 'AppData (Roaming)'
-            }
-            elseif ($full -match 'AppData\\Local') {
-                $category = 'AppData (Local)'
-            }
-            elseif ($full -match '\\Users\\[^\\]+\\\.') {
-                $category = 'Dotfiles / Config'
-            }
-            elseif ($full -match '\\Users\\[^\\]+\\[^\\\.]+$') {
-                $category = 'User Profile'
-            }
-            
-            $results.Add([PSCustomObject]@{
-                Name     = $itemName
-                Link     = $full
-                Target   = $target
-                Valid    = $valid
-                Category = $category
-            })
-        }
-    }
-    
-    return $results | Sort-Object Category, Name
-}
-
-# ─────────────────────────────────────────────────────────────────
 # Build Form
 # ─────────────────────────────────────────────────────────────────
 
@@ -159,7 +83,7 @@ $prop.SetValue($script:form, $true, $null)
 # ── Title Bar Panel ──
 $script:pnlTitle = [System.Windows.Forms.Panel]::new()
 $script:pnlTitle.Dock      = 'Top'
-$script:pnlTitle.Height    = $(Scale 70)
+$script:pnlTitle.Height    = $(Scale 92)
 $script:pnlTitle.BackColor = $script:clrHeader
 $script:pnlTitle.Padding   = [System.Windows.Forms.Padding]::new(20, 0, 20, 0)
 
@@ -179,19 +103,44 @@ $lblSubtitle.AutoSize  = $true
 $lblSubtitle.Location  = [System.Drawing.Point]::new($(Scale 20), $(Scale 40))
 $script:pnlTitle.Controls.Add($lblSubtitle)
 
-# ── Refresh Button (in title bar) ──
-$script:btnRefresh = [System.Windows.Forms.Button]::new()
-$script:btnRefresh.Text      = 'Refresh'
-$script:btnRefresh.Font      = $script:fontButton
-$script:btnRefresh.Size      = [System.Drawing.Size]::new($(Scale 100), $(Scale 34))
-$script:btnRefresh.FlatStyle = 'Flat'
-$script:btnRefresh.BackColor = $script:clrAccent
-$script:btnRefresh.ForeColor = [System.Drawing.Color]::White
-$script:btnRefresh.Cursor    = [System.Windows.Forms.Cursors]::Hand
-$script:btnRefresh.Anchor    = 'Top, Right'
-$script:btnRefresh.FlatAppearance.BorderSize = 0
-$script:btnRefresh.Location = [System.Drawing.Point]::new($script:pnlTitle.ClientSize.Width - ($(Scale 120)), $(Scale 18))
-$script:pnlTitle.Controls.Add($script:btnRefresh)
+$script:lblPending = [System.Windows.Forms.Label]::new()
+$script:lblPending.Text      = 'Pending source: none'
+$script:lblPending.Font      = $script:fontStatus
+$script:lblPending.ForeColor = $script:clrTextDim
+$script:lblPending.AutoSize  = $true
+$script:lblPending.Location  = [System.Drawing.Point]::new($(Scale 20), $(Scale 62))
+$script:pnlTitle.Controls.Add($script:lblPending)
+
+function New-TitleButton {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Text,
+
+        [Parameter(Mandatory)]
+        [int]$Width,
+
+        [System.Drawing.Color]$BackColor = $script:clrAccent
+    )
+
+    $button = [System.Windows.Forms.Button]::new()
+    $button.Text      = $Text
+    $button.Font      = $script:fontButton
+    $button.Size      = [System.Drawing.Size]::new($(Scale $Width), $(Scale 34))
+    $button.FlatStyle = 'Flat'
+    $button.BackColor = $BackColor
+    $button.ForeColor = [System.Drawing.Color]::White
+    $button.Cursor    = [System.Windows.Forms.Cursors]::Hand
+    $button.Anchor    = 'Top, Right'
+    $button.FlatAppearance.BorderSize = 0
+    $script:pnlTitle.Controls.Add($button)
+    return $button
+}
+
+$script:btnCreate       = New-TitleButton -Text 'Create' -Width 86
+$script:btnRevert       = New-TitleButton -Text 'Revert' -Width 86 -BackColor $script:clrOrange
+$script:btnChange       = New-TitleButton -Text 'Change' -Width 86 -BackColor $script:clrAccentDim
+$script:btnClearPending = New-TitleButton -Text 'Clear Source' -Width 110 -BackColor $script:clrBorder
+$script:btnRefresh      = New-TitleButton -Text 'Refresh' -Width 86
 
 # ── Status Bar ──
 $script:pnlStatus = [System.Windows.Forms.Panel]::new()
@@ -288,6 +237,168 @@ $colTarget.AutoSizeMode = 'Fill'
 [void]$script:dgv.Columns.Add($colLink)
 [void]$script:dgv.Columns.Add($colTarget)
 
+function Get-SelectedJunctionRow {
+    if ($script:dgv.CurrentRow) {
+        return $script:dgv.CurrentRow
+    }
+
+    if ($script:dgv.SelectedRows.Count -gt 0) {
+        return $script:dgv.SelectedRows[0]
+    }
+
+    return $null
+}
+
+function Get-SelectedJunctionPath {
+    $row = Get-SelectedJunctionRow
+    if (-not $row) {
+        return $null
+    }
+
+    return [string]$row.Cells['Link'].Value
+}
+
+function Show-MklinkError {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Message
+    )
+
+    [System.Windows.Forms.MessageBox]::Show(
+        $script:form,
+        $Message,
+        'mklink Manager',
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    ) | Out-Null
+    $script:lblStatus.Text = $Message
+}
+
+function Confirm-MklinkAction {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Message
+    )
+
+    $answer = [System.Windows.Forms.MessageBox]::Show(
+        $script:form,
+        $Message,
+        'mklink Manager',
+        [System.Windows.Forms.MessageBoxButtons]::YesNo,
+        [System.Windows.Forms.MessageBoxIcon]::Warning
+    )
+
+    return ($answer -eq [System.Windows.Forms.DialogResult]::Yes)
+}
+
+function Select-MklinkFolder {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Description
+    )
+
+    $dialog = [System.Windows.Forms.FolderBrowserDialog]::new()
+    $dialog.Description = $Description
+    $dialog.ShowNewFolderButton = $true
+    try {
+        if ($dialog.ShowDialog($script:form) -eq [System.Windows.Forms.DialogResult]::OK) {
+            return $dialog.SelectedPath
+        }
+        return $null
+    }
+    finally {
+        $dialog.Dispose()
+    }
+}
+
+function Update-PendingSourceStatus {
+    $pending = Get-MklinkPendingSource
+    if ($pending) {
+        $script:lblPending.Text = "Pending source: $pending"
+        $script:lblPending.ForeColor = $script:clrOrange
+        $script:btnCreate.Enabled = $true
+        $script:btnClearPending.Enabled = $true
+    }
+    else {
+        $script:lblPending.Text = 'Pending source: none'
+        $script:lblPending.ForeColor = $script:clrTextDim
+        $script:btnCreate.Enabled = $false
+        $script:btnClearPending.Enabled = $false
+    }
+}
+
+function Invoke-CreateFromPendingSource {
+    $source = Get-MklinkPendingSource
+    if (-not $source) {
+        Show-MklinkError -Message 'No pending source selected from Explorer.'
+        return
+    }
+
+    $targetDir = Select-MklinkFolder -Description 'Select destination folder for the pending source'
+    if (-not $targetDir) { return }
+
+    $sourceName = Split-Path -Path $source -Leaf
+    $previewTarget = Join-Path $targetDir $sourceName
+    $message = "Move source:`n$source`n`nCreate junction at original path pointing to:`n$previewTarget"
+    if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+    try {
+        $result = New-MklinkJunctionMove -SourcePath $source -TargetDirectory $targetDir
+        $script:lblStatus.Text = "Created: $($result.LinkPath) -> $($result.TargetPath)"
+        Update-PendingSourceStatus
+        Load-JunctionData
+    }
+    catch {
+        Show-MklinkError -Message $_.Exception.Message
+    }
+}
+
+function Invoke-RevertSelectedJunction {
+    $linkPath = Get-SelectedJunctionPath
+    if (-not $linkPath) {
+        Show-MklinkError -Message 'Select a junction first.'
+        return
+    }
+
+    try {
+        $info = Assert-MklinkJunction -LinkPath $linkPath
+        $message = "Revert junction:`n$($info.Path)`n`nMove target back from:`n$($info.Target)`n`nThis removes the junction and restores the real folder at the original path."
+        if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+        $result = Revert-MklinkJunction -LinkPath $linkPath
+        $script:lblStatus.Text = "Reverted: $($result.RestoredPath)"
+        Load-JunctionData
+    }
+    catch {
+        Show-MklinkError -Message $_.Exception.Message
+    }
+}
+
+function Invoke-ChangeSelectedDestination {
+    $linkPath = Get-SelectedJunctionPath
+    if (-not $linkPath) {
+        Show-MklinkError -Message 'Select a junction first.'
+        return
+    }
+
+    try {
+        $info = Assert-MklinkJunction -LinkPath $linkPath
+        $newTargetDir = Select-MklinkFolder -Description 'Select the new destination parent folder'
+        if (-not $newTargetDir) { return }
+
+        $previewTarget = Join-Path $newTargetDir $info.Name
+        $message = "Change destination for:`n$($info.Path)`n`nMove target from:`n$($info.Target)`n`nTo:`n$previewTarget"
+        if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+        $result = Move-MklinkJunctionTarget -LinkPath $linkPath -NewTargetDirectory $newTargetDir
+        $script:lblStatus.Text = "Changed target: $($result.LinkPath) -> $($result.NewTargetPath)"
+        Load-JunctionData
+    }
+    catch {
+        Show-MklinkError -Message $_.Exception.Message
+    }
+}
+
 
 # ── Context Menu ──
 $ctxMenu = [System.Windows.Forms.ContextMenuStrip]::new()
@@ -340,7 +451,24 @@ $ctxCopyTarget.Add_Click({
     }
 })
 
-$ctxMenu.Items.AddRange(@($ctxOpenLink, $ctxOpenTarget, $ctxCopyLink, $ctxCopyTarget))
+$ctxChangeTarget = [System.Windows.Forms.ToolStripMenuItem]::new('Change Destination...')
+$ctxChangeTarget.ForeColor = $script:clrText
+$ctxChangeTarget.Add_Click({ Invoke-ChangeSelectedDestination })
+
+$ctxRevert = [System.Windows.Forms.ToolStripMenuItem]::new('Revert Junction')
+$ctxRevert.ForeColor = $script:clrOrange
+$ctxRevert.Add_Click({ Invoke-RevertSelectedJunction })
+
+$ctxMenu.Items.AddRange(@(
+    $ctxOpenLink,
+    $ctxOpenTarget,
+    [System.Windows.Forms.ToolStripSeparator]::new(),
+    $ctxChangeTarget,
+    $ctxRevert,
+    [System.Windows.Forms.ToolStripSeparator]::new(),
+    $ctxCopyLink,
+    $ctxCopyTarget
+))
 $script:dgv.ContextMenuStrip = $ctxMenu
 
 # ── Right-click selects row ──
@@ -414,15 +542,44 @@ function Load-JunctionData {
         $statusText += "  |  All valid"
     }
     $script:lblStatus.Text = $statusText
+    Update-PendingSourceStatus
+}
+
+function Set-TitleButtonPositions {
+    $right = $script:pnlTitle.ClientSize.Width - $(Scale 20)
+    $buttons = @(
+        $script:btnRefresh,
+        $script:btnClearPending,
+        $script:btnChange,
+        $script:btnRevert,
+        $script:btnCreate
+    )
+
+    foreach ($button in $buttons) {
+        $right -= $button.Width
+        $button.Location = [System.Drawing.Point]::new($right, $(Scale 28))
+        $right -= $(Scale 8)
+    }
 }
 
 # ── Refresh button position update on resize ──
 $script:pnlTitle.Add_Resize({
-    $script:btnRefresh.Location = [System.Drawing.Point]::new($script:pnlTitle.ClientSize.Width - ($(Scale 120)), $(Scale 18))
+    Set-TitleButtonPositions
 })
 
 # ── Refresh click ──
 $script:btnRefresh.Add_Click({ Load-JunctionData })
+$script:btnCreate.Add_Click({ Invoke-CreateFromPendingSource })
+$script:btnRevert.Add_Click({ Invoke-RevertSelectedJunction })
+$script:btnChange.Add_Click({ Invoke-ChangeSelectedDestination })
+$script:btnClearPending.Add_Click({
+    Clear-MklinkPendingSource
+    Update-PendingSourceStatus
+    $script:lblStatus.Text = 'Pending source cleared.'
+})
+
+Set-TitleButtonPositions
+Update-PendingSourceStatus
 
 # ── Assemble Layout ──
 # WinForms Dock order: Fill must be added FIRST to the form,

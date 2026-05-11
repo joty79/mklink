@@ -1,23 +1,21 @@
-# mklink Source - Stores the folder path for junction creation
-# Silent execution - just stores in registry
+#Requires -Version 7
 
-param([string]$folderPath)
+param(
+    [Parameter(Position = 0)]
+    [string]$FolderPath
+)
 
-# If no argument, try to reconstruct from $args
-if (-not $folderPath -and $args.Count -gt 0) {
-    $folderPath = $args -join " "
+if (-not $FolderPath -and $args.Count -gt 0) {
+    $FolderPath = $args -join ' '
 }
 
-$regPath = "HKCU:\RCWM\mklink"
+. "$PSScriptRoot\MklinkCore.ps1"
 
-# Ensure registry key exists
-if (-not (Test-Path $regPath)) {
-    New-Item -Path $regPath -Force | Out-Null
+try {
+    [void](Set-MklinkPendingSource -SourcePath $FolderPath)
 }
-else {
-    # Clear previous entry
-    Remove-ItemProperty -Path $regPath -Name * -ErrorAction SilentlyContinue
+catch {
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    $errorLogPath = Join-Path $PSScriptRoot 'error_log.txt'
+    Add-Content -LiteralPath $errorLogPath -Value "[$timestamp] SOURCE ERROR: $($_.Exception.Message)"
 }
-
-# Store the source path
-New-ItemProperty -Path $regPath -Name "SourcePath" -Value $folderPath -Force | Out-Null

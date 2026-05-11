@@ -2,27 +2,76 @@ Windows Registry Editor Version 5.00
 
 ; mklink Move & Junction Tool
 ; Location: D:\Users\joty79\scripts\mklink
+; Scope: current user context menu entries under HKCU\Software\Classes
 
 ; -------- CLEANUP OLD KEYS --------
 
 [-HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource]
 [-HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget]
+[-HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink]
+[-HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink]
 
-; -------- ADD MKLINK ENTRIES --------
+; -------- FOLDER RIGHT-CLICK SUBMENU --------
 
-; mklink Source (on folders)
-[HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource]
-@="mklink Source"
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink]
+"MUIVerb"="mklink"
 "Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
 
-[HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource\command]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource]
+"MUIVerb"="Set as source"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Silent.vbs\" \"%V\""
 
-; mklink Target (on background)
-[HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget]
-@="mklink Target (Junction)"
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_revert]
+"MUIVerb"="Revert junction"
 "Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
 "HasLUAShield"=""
 
-[HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget\command]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_revert\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Revert.vbs\" \"%V\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_manager]
+"MUIVerb"="Open Manager"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"CommandFlags"=dword:00000020
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_manager\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\MklinkManager.vbs\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_clear]
+"MUIVerb"="Clear pending source"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_clear\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Clear.vbs\""
+
+; -------- FOLDER BACKGROUND RIGHT-CLICK SUBMENU --------
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink]
+"MUIVerb"="mklink"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\01_createHere]
+"MUIVerb"="Create junction here"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"HasLUAShield"=""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\01_createHere\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Target.vbs\" \"%V\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\02_manager]
+"MUIVerb"="Open Manager"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"CommandFlags"=dword:00000020
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\02_manager\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\MklinkManager.vbs\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\03_clear]
+"MUIVerb"="Clear pending source"
+"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\03_clear\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Clear.vbs\""
