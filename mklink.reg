@@ -8,6 +8,10 @@ Windows Registry Editor Version 5.00
 
 [-HKEY_CLASSES_ROOT\Directory\Shell\mklinkSource]
 [-HKEY_CLASSES_ROOT\Directory\Background\Shell\mklinkTarget]
+[-HKEY_CURRENT_USER\Software\Classes\Directory\Shell\mklinkSource]
+[-HKEY_CURRENT_USER\Software\Classes\Directory\Background\Shell\mklinkTarget]
+[-HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklinkSource]
+[-HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklinkTarget]
 [-HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink]
 [-HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink]
 
@@ -16,6 +20,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink]
 "MUIVerb"="mklink"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
+"SubCommands"=""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource]
 "MUIVerb"="Set as source"
@@ -52,6 +57,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink]
 "MUIVerb"="mklink"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
+"SubCommands"=""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\01_createHere]
 "MUIVerb"="Create junction here"
@@ -71,7 +77,7 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\03_clear]
 "MUIVerb"="Clear pending source"
-"Icon"="d:\\Users\\joty79\\Documents\\Icons\\mklink.ico"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\03_clear\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Clear.vbs\""

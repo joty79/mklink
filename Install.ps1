@@ -106,8 +106,12 @@ $script:ProfileJson = @'
     "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink",
     "HKCU\\Software\\Classes\\Directory\\Shell\\mklinkSource",
     "HKCU\\Software\\Classes\\Directory\\Background\\Shell\\mklinkTarget",
+    "HKCU\\Software\\Classes\\Directory\\shell\\mklinkSource",
+    "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklinkTarget",
     "HKCR\\Directory\\Shell\\mklinkSource",
     "HKCR\\Directory\\Background\\Shell\\mklinkTarget",
+    "HKCR\\Directory\\shell\\mklinkSource",
+    "HKCR\\Directory\\Background\\shell\\mklinkTarget",
     "HKCR\\Directory\\shell\\mklink",
     "HKCR\\Directory\\Background\\shell\\mklink"
   ],
@@ -123,6 +127,12 @@ $script:ProfileJson = @'
       "name": "Icon",
       "type": "REG_SZ",
       "value": "{InstallRoot}\\.assets\\icons\\mklink.ico"
+    },
+    {
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink",
+      "name": "SubCommands",
+      "type": "REG_SZ",
+      "value": ""
     },
     {
       "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\01_setSource",
@@ -221,6 +231,12 @@ $script:ProfileJson = @'
       "value": "{InstallRoot}\\.assets\\icons\\mklink.ico"
     },
     {
+      "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink",
+      "name": "SubCommands",
+      "type": "REG_SZ",
+      "value": ""
+    },
+    {
       "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink\\shell\\01_createHere",
       "name": "MUIVerb",
       "type": "REG_SZ",
@@ -299,6 +315,11 @@ $script:ProfileJson = @'
       "expected": "{InstallRoot}\\.assets\\icons\\mklink.ico"
     },
     {
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink",
+      "name": "SubCommands",
+      "expected": ""
+    },
+    {
       "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\01_setSource\\command",
       "name": "(default)",
       "expected": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\""
@@ -327,6 +348,11 @@ $script:ProfileJson = @'
       "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink",
       "name": "Icon",
       "expected": "{InstallRoot}\\.assets\\icons\\mklink.ico"
+    },
+    {
+      "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink",
+      "name": "SubCommands",
+      "expected": ""
     },
     {
       "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink\\shell\\01_createHere\\command",
