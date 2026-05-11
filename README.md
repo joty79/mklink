@@ -87,6 +87,8 @@ pwsh -ExecutionPolicy Bypass -File "D:\Users\joty79\scripts\mklink\Install.ps1"
 
 Το installer εγκαθιστά τα runtime files κάτω από `%LOCALAPPDATA%\mklink`, γράφει το current-user context menu και κρατά uninstall entry.
 
+Αν αναβαθμίζεις από παλιό context menu και μείνουν extra entries όπως `mklink Target (Junction)`, τρέξε το ίδιο installer elevated/as Administrator. Αυτό σημαίνει ότι υπάρχει παλιό `HKCR` ή machine-level leftover που δεν καθαρίζεται αξιόπιστα από non-admin launch.
+
 Το `mklink.reg` μένει σαν manual/reference artifact αν θέλεις να αλλάξεις μόνο το live Explorer context menu από το working copy.
 
 ```powershell
