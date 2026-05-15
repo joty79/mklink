@@ -26,6 +26,6 @@
 - **2026-05-11:** Fixed mklink context-menu cascade and legacy cleanup.
   - Problem: Explorer showed `mklink` as a clickable command instead of opening the submenu, and old `mklink Target (Junction)` entries remained visible.
   - Root cause: Parent cascade keys missed the required empty `SubCommands` value, cleanup did not cover every old HKCU/HKCR legacy key variant, and protected leftovers only cleared after an elevated/admin installer run.
-  - Guardrail/rule: mklink context-menu parent keys must write and verify `SubCommands=""`; cleanup must remove old standalone verbs and current submenu parents from HKCU/HKCR variants; if stale entries remain after non-admin install, run elevated cleanup and mark non-admin cleanup as incomplete.
+  - Guardrail/rule: mklink context-menu parent keys must write and verify `SubCommands=""`; cleanup must remove old standalone verbs and current submenu parents from HKCU/HKCR variants; if protected leftovers remain after non-admin install, the generated installer should prompt for elevated `RegistryRepair`.
   - Files affected: `mklink.reg`, generated `Install.ps1`, InstallerCore `profiles\mklink.json`, `README.md`.
   - Validation/tests run: InstallerCore generator, generated installer parser validation, profile JSON parse; user confirmed cascade fix worked and stale entries cleared after admin installer run.
