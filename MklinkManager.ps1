@@ -190,18 +190,18 @@ function Add-ButtonHoverDescription {
 }
 
 # Attach descriptions
-Add-ButtonHoverDescription -Button $script:btnCreate -Description 'Μεταφορά του Pending Source στον προορισμό και δημιουργία Junction.'
-Add-ButtonHoverDescription -Button $script:btnRevert -Description 'Κατάργηση του Junction και επαναφορά του πραγματικού φακέλου στην αρχική του θέση.'
-Add-ButtonHoverDescription -Button $script:btnChange -Description 'Αλλαγή του φακέλου προορισμού (Target) για το επιλεγμένο Junction.'
-Add-ButtonHoverDescription -Button $script:btnClearPending -Description 'Καθαρισμός του επιλεγμένου Pending Source από το Registry.'
-Add-ButtonHoverDescription -Button $script:btnRefresh -Description 'Ανανέωση της λίστας των Live Junctions.'
+Add-ButtonHoverDescription -Button $script:btnCreate -Description 'Move pending source to destination and create junction.'
+Add-ButtonHoverDescription -Button $script:btnRevert -Description 'Remove junction and revert target folder back to original path.'
+Add-ButtonHoverDescription -Button $script:btnChange -Description 'Move current target folder to a new destination and recreate junction.'
+Add-ButtonHoverDescription -Button $script:btnClearPending -Description 'Clear selected pending source path from registry.'
+Add-ButtonHoverDescription -Button $script:btnRefresh -Description 'Scan and refresh the list of live junctions.'
 
-Add-ButtonHoverDescription -Button $script:btnLoadSnapshot -Description 'Φόρτωση αρχείου Snapshot (JSON) από το δίσκο.'
-Add-ButtonHoverDescription -Button $script:btnSaveSnapshot -Description 'Αποθήκευση των τρεχόντων junctions σε αρχείο Snapshot (JSON).'
-Add-ButtonHoverDescription -Button $script:btnApplyChecked -Description 'Μαζική δημιουργία των επιλεγμένων Junctions του Snapshot.'
-Add-ButtonHoverDescription -Button $script:btnRedirect -Description 'Μαζική αντικατάσταση διαδρομών (Find & Replace) στα Target Paths του Snapshot.'
-Add-ButtonHoverDescription -Button $script:btnToggleAll -Description 'Επιλογή ή αποεπιλογή όλων των στοιχείων στη λίστα του Snapshot.'
-Add-ButtonHoverDescription -Button $script:btnCaptureLive -Description 'Λήψη των Live Junctions του συστήματος απευθείας στη λίστα Snapshot.'
+Add-ButtonHoverDescription -Button $script:btnLoadSnapshot -Description 'Load a junction snapshot JSON file from disk.'
+Add-ButtonHoverDescription -Button $script:btnSaveSnapshot -Description 'Save current live junctions to a snapshot JSON file.'
+Add-ButtonHoverDescription -Button $script:btnApplyChecked -Description 'Recreate and restore all selected junctions in snapshot.'
+Add-ButtonHoverDescription -Button $script:btnRedirect -Description 'Batch find and replace path targets in snapshot (e.g. change drive letters).'
+Add-ButtonHoverDescription -Button $script:btnToggleAll -Description 'Check or uncheck all items in the snapshot list.'
+Add-ButtonHoverDescription -Button $script:btnCaptureLive -Description 'Capture current live junctions directly into snapshot list without file.'
 
 # ── Status Bar ──
 $script:pnlStatus = [System.Windows.Forms.Panel]::new()
