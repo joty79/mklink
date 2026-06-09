@@ -121,6 +121,7 @@ $script:lblHelp.TextAlign = 'MiddleRight'
 $script:lblHelp.Anchor    = 'Top, Right'
 $script:lblHelp.Text      = ''
 $script:pnlTitle.Controls.Add($script:lblHelp)
+$script:lblHelp.BringToFront()
 
 function New-TitleButton {
     param(
@@ -181,10 +182,10 @@ function Add-ButtonHoverDescription {
 
     $Button.Add_MouseEnter({
         $script:lblHelp.Text = $Description
-    })
+    }.GetNewClosure())
     $Button.Add_MouseLeave({
         $script:lblHelp.Text = ''
-    })
+    }.GetNewClosure())
 }
 
 # Attach descriptions
@@ -1079,7 +1080,7 @@ $script:pnlTitle.Add_Resize({
     Set-TitleButtonPositions
     if ($script:lblHelp) {
         $rightLimit = $script:pnlTitle.ClientSize.Width - $(Scale 20)
-        $script:lblHelp.Location = [System.Drawing.Point]::new($rightLimit - $script:lblHelp.Width, $(Scale 66))
+        $script:lblHelp.Location = [System.Drawing.Point]::new($rightLimit - $script:lblHelp.Width, $(Scale 62))
     }
 })
 
@@ -1311,7 +1312,7 @@ $script:btnCaptureLive.Add_Click({
 Set-TitleButtonPositions
 if ($script:lblHelp) {
     $rightLimit = $script:pnlTitle.ClientSize.Width - $(Scale 20)
-    $script:lblHelp.Location = [System.Drawing.Point]::new($rightLimit - $script:lblHelp.Width, $(Scale 66))
+    $script:lblHelp.Location = [System.Drawing.Point]::new($rightLimit - $script:lblHelp.Width, $(Scale 62))
 }
 Update-PendingSourceStatus
 
