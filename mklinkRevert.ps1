@@ -11,7 +11,7 @@ if (-not $LinkPath -and $args.Count -gt 0) {
 
 . "$PSScriptRoot\MklinkCore.ps1"
 
-$errorLogPath = Join-Path $PSScriptRoot 'error_log.txt'
+$errorLogPath = Get-MklinkDataPath -SubFolder 'logs' -FileName 'error_log.txt'
 
 try {
     $info = Assert-MklinkJunction -LinkPath $LinkPath

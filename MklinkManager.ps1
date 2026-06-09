@@ -64,11 +64,10 @@ $script:fontBold      = [System.Drawing.Font]::new($script:fontFamily, 9, [Syste
 # Build Form
 # ─────────────────────────────────────────────────────────────────
 
-
 $script:form = [System.Windows.Forms.Form]@{
     Text            = 'mklink Manager'
     Size            = [System.Drawing.Size]::new(1050, 680)
-    MinimumSize     = [System.Drawing.Size]::new(800, 500)
+    MinimumSize     = [System.Drawing.Size]::new(850, 550)
     StartPosition   = 'CenterScreen'
     BackColor       = $script:clrBg
     ForeColor       = $script:clrText
@@ -111,6 +110,18 @@ $script:lblPending.AutoSize  = $true
 $script:lblPending.Location  = [System.Drawing.Point]::new($(Scale 20), $(Scale 62))
 $script:pnlTitle.Controls.Add($script:lblPending)
 
+# Help description label aligned below the right-side buttons
+$script:lblHelp = [System.Windows.Forms.Label]::new()
+$script:lblHelp.Font      = $script:fontStatus
+$script:lblHelp.ForeColor = $script:clrAccent
+$script:lblHelp.AutoSize  = $false
+$script:lblHelp.Width     = $(Scale 650)
+$script:lblHelp.Height    = $(Scale 22)
+$script:lblHelp.TextAlign = 'MiddleRight'
+$script:lblHelp.Anchor    = 'Top, Right'
+$script:lblHelp.Text      = ''
+$script:pnlTitle.Controls.Add($script:lblHelp)
+
 function New-TitleButton {
     param(
         [Parameter(Mandatory)]
@@ -136,11 +147,59 @@ function New-TitleButton {
     return $button
 }
 
+# Live view buttons
 $script:btnCreate       = New-TitleButton -Text 'Create' -Width 86
 $script:btnRevert       = New-TitleButton -Text 'Revert' -Width 86 -BackColor $script:clrOrange
 $script:btnChange       = New-TitleButton -Text 'Change' -Width 86 -BackColor $script:clrAccentDim
 $script:btnClearPending = New-TitleButton -Text 'Clear Source' -Width 110 -BackColor $script:clrBorder
 $script:btnRefresh      = New-TitleButton -Text 'Refresh' -Width 86
+
+# Snapshot Panel Buttons
+$script:btnLoadSnapshot = New-TitleButton -Text 'Load Snapshot' -Width 110
+$script:btnSaveSnapshot = New-TitleButton -Text 'Save Snapshot' -Width 110 -BackColor $script:clrAccentDim
+$script:btnApplyChecked = New-TitleButton -Text 'Apply Checked' -Width 110 -BackColor $script:clrGreen
+$script:btnRedirect     = New-TitleButton -Text 'Global Redirect' -Width 120 -BackColor $script:clrOrange
+$script:btnToggleAll    = New-TitleButton -Text 'Check All' -Width 90 -BackColor $script:clrBorder
+$script:btnCaptureLive  = New-TitleButton -Text 'Capture Live' -Width 100 -BackColor $script:clrAccentDim
+
+# Hide snapshot buttons initially
+$script:btnLoadSnapshot.Visible = $false
+$script:btnSaveSnapshot.Visible = $false
+$script:btnApplyChecked.Visible = $false
+$script:btnRedirect.Visible     = $false
+$script:btnToggleAll.Visible    = $false
+$script:btnCaptureLive.Visible  = $false
+
+# Helper function to attach hover descriptions
+function Add-ButtonHoverDescription {
+    param(
+        [Parameter(Mandatory)]
+        [System.Windows.Forms.Button]$Button,
+        [Parameter(Mandatory)]
+        [string]$Description
+    )
+
+    $Button.Add_MouseEnter({
+        $script:lblHelp.Text = $Description
+    })
+    $Button.Add_MouseLeave({
+        $script:lblHelp.Text = ''
+    })
+}
+
+# Attach descriptions
+Add-ButtonHoverDescription -Button $script:btnCreate -Description 'Μεταφορά του Pending Source στον προορισμό και δημιουργία Junction.'
+Add-ButtonHoverDescription -Button $script:btnRevert -Description 'Κατάργηση του Junction και επαναφορά του πραγματικού φακέλου στην αρχική του θέση.'
+Add-ButtonHoverDescription -Button $script:btnChange -Description 'Αλλαγή του φακέλου προορισμού (Target) για το επιλεγμένο Junction.'
+Add-ButtonHoverDescription -Button $script:btnClearPending -Description 'Καθαρισμός του επιλεγμένου Pending Source από το Registry.'
+Add-ButtonHoverDescription -Button $script:btnRefresh -Description 'Ανανέωση της λίστας των Live Junctions.'
+
+Add-ButtonHoverDescription -Button $script:btnLoadSnapshot -Description 'Φόρτωση αρχείου Snapshot (JSON) από το δίσκο.'
+Add-ButtonHoverDescription -Button $script:btnSaveSnapshot -Description 'Αποθήκευση των τρεχόντων junctions σε αρχείο Snapshot (JSON).'
+Add-ButtonHoverDescription -Button $script:btnApplyChecked -Description 'Μαζική δημιουργία των επιλεγμένων Junctions του Snapshot.'
+Add-ButtonHoverDescription -Button $script:btnRedirect -Description 'Μαζική αντικατάσταση διαδρομών (Find & Replace) στα Target Paths του Snapshot.'
+Add-ButtonHoverDescription -Button $script:btnToggleAll -Description 'Επιλογή ή αποεπιλογή όλων των στοιχείων στη λίστα του Snapshot.'
+Add-ButtonHoverDescription -Button $script:btnCaptureLive -Description 'Λήψη των Live Junctions του συστήματος απευθείας στη λίστα Snapshot.'
 
 # ── Status Bar ──
 $script:pnlStatus = [System.Windows.Forms.Panel]::new()
@@ -155,7 +214,7 @@ $script:lblStatus.AutoSize  = $true
 $script:lblStatus.Location  = [System.Drawing.Point]::new($(Scale 20), $(Scale 8))
 $script:pnlStatus.Controls.Add($script:lblStatus)
 
-# ── DataGridView ──
+# ── DataGridView (Live) ──
 $script:dgv = [System.Windows.Forms.DataGridView]::new()
 $script:dgv.Dock                       = 'Fill'
 $script:dgv.BackgroundColor            = $script:clrBg
@@ -199,7 +258,7 @@ $script:dgv.DefaultCellStyle.Padding            = [System.Windows.Forms.Padding]
 $script:dgv.AlternatingRowsDefaultCellStyle.BackColor          = $script:clrRowAlt
 $script:dgv.AlternatingRowsDefaultCellStyle.SelectionBackColor = $script:clrRowHover
 
-# ── Columns ──
+# ── Columns (Live) ──
 $colStatus = [System.Windows.Forms.DataGridViewTextBoxColumn]::new()
 $colStatus.HeaderText  = 'Status'
 $colStatus.Name        = 'Status'
@@ -236,6 +295,98 @@ $colTarget.AutoSizeMode = 'Fill'
 [void]$script:dgv.Columns.Add($colName)
 [void]$script:dgv.Columns.Add($colLink)
 [void]$script:dgv.Columns.Add($colTarget)
+
+# ── DataGridView (Snapshot) ──
+$script:dgvSnapshot = [System.Windows.Forms.DataGridView]::new()
+$script:dgvSnapshot.Dock                       = 'Fill'
+$script:dgvSnapshot.BackgroundColor            = $script:clrBg
+$script:dgvSnapshot.GridColor                  = $script:clrBorder
+$script:dgvSnapshot.BorderStyle                = 'None'
+$script:dgvSnapshot.CellBorderStyle            = 'SingleHorizontal'
+$script:dgvSnapshot.RowHeadersVisible          = $false
+$script:dgvSnapshot.AllowUserToAddRows         = $false
+$script:dgvSnapshot.AllowUserToDeleteRows      = $false
+$script:dgvSnapshot.AllowUserToResizeRows      = $false
+$script:dgvSnapshot.ReadOnly                   = $false
+$script:dgvSnapshot.SelectionMode              = 'FullRowSelect'
+$script:dgvSnapshot.MultiSelect                = $false
+$script:dgvSnapshot.EnableHeadersVisualStyles  = $false
+$script:dgvSnapshot.ColumnHeadersHeight        = $(Scale 38)
+$script:dgvSnapshot.ColumnHeadersHeightSizeMode = 'DisableResizing'
+$script:dgvSnapshot.RowTemplate.Height = $(Scale 36)
+
+# Double-buffer the Snapshot DGV
+$dgvSnapProp = $script:dgvSnapshot.GetType().GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]'Instance,NonPublic')
+$dgvSnapProp.SetValue($script:dgvSnapshot, $true, $null)
+
+# Header style
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.BackColor  = $script:clrHeader
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.ForeColor  = $script:clrAccent
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.Font       = $script:fontHeader
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.Alignment  = 'MiddleLeft'
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.Padding    = [System.Windows.Forms.Padding]::new(8, 0, 0, 0)
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.SelectionBackColor = $script:clrHeader
+$script:dgvSnapshot.ColumnHeadersDefaultCellStyle.SelectionForeColor = $script:clrAccent
+
+# Default cell style
+$script:dgvSnapshot.DefaultCellStyle.BackColor          = $script:clrPanel
+$script:dgvSnapshot.DefaultCellStyle.ForeColor          = $script:clrText
+$script:dgvSnapshot.DefaultCellStyle.SelectionBackColor = $script:clrRowHover
+$script:dgvSnapshot.DefaultCellStyle.SelectionForeColor = $script:clrText
+$script:dgvSnapshot.DefaultCellStyle.Font               = $script:fontCell
+$script:dgvSnapshot.DefaultCellStyle.Padding            = [System.Windows.Forms.Padding]::new(8, 0, 0, 0)
+
+# Alternating row
+$script:dgvSnapshot.AlternatingRowsDefaultCellStyle.BackColor          = $script:clrRowAlt
+$script:dgvSnapshot.AlternatingRowsDefaultCellStyle.SelectionBackColor = $script:clrRowHover
+
+# ── Columns (Snapshot) ──
+$colSnapCheck = [System.Windows.Forms.DataGridViewCheckBoxColumn]::new()
+$colSnapCheck.HeaderText = 'Apply'
+$colSnapCheck.Name       = 'Check'
+$colSnapCheck.Width      = 55
+$colSnapCheck.ReadOnly   = $false
+
+$colSnapStatus = [System.Windows.Forms.DataGridViewTextBoxColumn]::new()
+$colSnapStatus.HeaderText  = 'Status'
+$colSnapStatus.Name        = 'Status'
+$colSnapStatus.Width       = 100
+$colSnapStatus.ReadOnly   = $true
+
+$colSnapCategory = [System.Windows.Forms.DataGridViewTextBoxColumn]::new()
+$colSnapCategory.HeaderText  = 'Category'
+$colSnapCategory.Name        = 'Category'
+$colSnapCategory.Width       = 130
+$colSnapCategory.ReadOnly   = $true
+
+$colSnapName = [System.Windows.Forms.DataGridViewTextBoxColumn]::new()
+$colSnapName.HeaderText  = 'Name'
+$colSnapName.Name        = 'JunctionName'
+$colSnapName.Width       = 130
+$colSnapName.ReadOnly   = $true
+
+$colSnapLink = [System.Windows.Forms.DataGridViewTextBoxColumn]::new()
+$colSnapLink.HeaderText  = 'Junction Path'
+$colSnapLink.Name        = 'Link'
+$colSnapLink.Width       = 280
+$colSnapLink.ReadOnly   = $true
+
+$colSnapTarget = [System.Windows.Forms.DataGridViewTextBoxColumn]::new()
+$colSnapTarget.HeaderText  = 'Target Path'
+$colSnapTarget.Name        = 'Target'
+$colSnapTarget.Width       = 280
+$colSnapTarget.AutoSizeMode = 'Fill'
+$colSnapTarget.ReadOnly   = $true
+
+[void]$script:dgvSnapshot.Columns.Add($colSnapCheck)
+[void]$script:dgvSnapshot.Columns.Add($colSnapStatus)
+[void]$script:dgvSnapshot.Columns.Add($colSnapCategory)
+[void]$script:dgvSnapshot.Columns.Add($colSnapName)
+[void]$script:dgvSnapshot.Columns.Add($colSnapLink)
+[void]$script:dgvSnapshot.Columns.Add($colSnapTarget)
+
+# ── Snapshot state ──
+$script:loadedSnapshotItems = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 function Get-SelectedJunctionRow {
     if ($script:dgv.CurrentRow) {
@@ -399,8 +550,7 @@ function Invoke-ChangeSelectedDestination {
     }
 }
 
-
-# ── Context Menu ──
+# ── Context Menu (Live) ──
 $ctxMenu = [System.Windows.Forms.ContextMenuStrip]::new()
 $ctxMenu.BackColor = $script:clrPanel
 $ctxMenu.ForeColor = $script:clrText
@@ -514,7 +664,7 @@ $script:dgv.Add_CellDoubleClick({
     }
 })
 
-# ── Load Data Function ──
+# ── Load Data Function (Live) ──
 function Load-JunctionData {
     $script:dgv.SuspendLayout()
     $script:dgv.Rows.Clear()
@@ -545,29 +695,395 @@ function Load-JunctionData {
     Update-PendingSourceStatus
 }
 
+# ── Snapshot Support Functions ──
+function Update-SnapshotStatusText {
+    $total = $script:loadedSnapshotItems.Count
+    if ($total -eq 0) {
+        $script:lblStatus.Text = 'No snapshot loaded.'
+        return
+    }
+    
+    $checkedCount = 0
+    $missingTarget = 0
+    $conflictCount = 0
+    
+    foreach ($row in $script:dgvSnapshot.Rows) {
+        if ($row.Cells['Check'].Value) {
+            $checkedCount++
+        }
+        $status = $row.Cells['Status'].Value
+        if ($status -eq 'TARGET MISSING') {
+            $missingTarget++
+        }
+        elseif ($status -eq 'CONFLICT') {
+            $conflictCount++
+        }
+    }
+    
+    $statusText = "Snapshot: $total items  |  $checkedCount selected"
+    if ($missingTarget -gt 0) {
+        $statusText += "  |  $missingTarget targets missing"
+    }
+    if ($conflictCount -gt 0) {
+        $statusText += "  |  $conflictCount conflicts"
+    }
+    $script:lblStatus.Text = $statusText
+}
+
+function Load-SnapshotGridData {
+    $script:dgvSnapshot.SuspendLayout()
+    $script:dgvSnapshot.Rows.Clear()
+    
+    foreach ($item in $script:loadedSnapshotItems) {
+        $status = 'PENDING'
+        
+        # Check target path
+        $targetExists = Test-Path -LiteralPath $item.Target -ErrorAction SilentlyContinue
+        if (-not $targetExists) {
+            $status = 'TARGET MISSING'
+        }
+        
+        # Check link path
+        if (Test-Path -LiteralPath $item.Link) {
+            $linkItem = Get-Item -LiteralPath $item.Link -Force
+            if ($linkItem.LinkType -eq 'Junction') {
+                $info = Get-MklinkItemInfo -Path $item.Link
+                if ($info.Target -eq $item.Target) {
+                    $status = 'APPLIED'
+                } else {
+                    $status = 'CONFLICT'
+                }
+            } else {
+                $status = 'CONFLICT'
+            }
+        }
+        
+        $defaultChecked = ($status -eq 'PENDING')
+        
+        $rowIndex = $script:dgvSnapshot.Rows.Add()
+        $row = $script:dgvSnapshot.Rows[$rowIndex]
+        $row.Cells['Check'].Value = $defaultChecked
+        $row.Cells['Status'].Value = $status
+        $row.Cells['Category'].Value = $item.Category
+        $row.Cells['JunctionName'].Value = $item.Name
+        $row.Cells['Link'].Value = $item.Link
+        $row.Cells['Target'].Value = $item.Target
+    }
+    
+    $script:dgvSnapshot.ResumeLayout()
+    Update-SnapshotStatusText
+}
+
+function Show-RedirectDialog {
+    $dlg = [System.Windows.Forms.Form]@{
+        Text            = 'Global Redirect Target Paths'
+        Size            = [System.Drawing.Size]::new(400, 200)
+        StartPosition   = 'CenterParent'
+        FormBorderStyle = 'FixedDialog'
+        MaximizeBox     = $false
+        MinimizeBox     = $false
+        BackColor       = $script:clrBg
+        ForeColor       = $script:clrText
+        Font            = $script:fontCell
+    }
+
+    $lblFind = [System.Windows.Forms.Label]@{
+        Text     = 'Find path segment:'
+        Location = [System.Drawing.Point]::new($(Scale 20), $(Scale 20))
+        Size     = [System.Drawing.Size]::new($(Scale 340), $(Scale 18))
+    }
+    $txtFind = [System.Windows.Forms.TextBox]@{
+        Location = [System.Drawing.Point]::new($(Scale 20), $(Scale 40))
+        Size     = [System.Drawing.Size]::new($(Scale 340), $(Scale 24))
+        BackColor = $script:clrPanel
+        ForeColor = $script:clrText
+        BorderStyle = 'FixedSingle'
+        Text      = 'D:\'
+    }
+
+    $lblReplace = [System.Windows.Forms.Label]@{
+        Text     = 'Replace with:'
+        Location = [System.Drawing.Point]::new($(Scale 20), $(Scale 74))
+        Size     = [System.Drawing.Size]::new($(Scale 340), $(Scale 18))
+    }
+    $txtReplace = [System.Windows.Forms.TextBox]@{
+        Location = [System.Drawing.Point]::new($(Scale 20), $(Scale 94))
+        Size     = [System.Drawing.Size]::new($(Scale 340), $(Scale 24))
+        BackColor = $script:clrPanel
+        ForeColor = $script:clrText
+        BorderStyle = 'FixedSingle'
+        Text      = 'E:\'
+    }
+
+    $btnOk = [System.Windows.Forms.Button]@{
+        Text      = 'Replace All'
+        DialogResult = [System.Windows.Forms.DialogResult]::OK
+        Location  = [System.Drawing.Point]::new($(Scale 170), $(Scale 130))
+        Size      = [System.Drawing.Size]::new($(Scale 100), $(Scale 28))
+        FlatStyle = 'Flat'
+        BackColor = $script:clrAccent
+        ForeColor = [System.Drawing.Color]::White
+    }
+    $btnOk.FlatAppearance.BorderSize = 0
+
+    $btnCancel = [System.Windows.Forms.Button]@{
+        Text      = 'Cancel'
+        DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+        Location  = [System.Drawing.Point]::new($(Scale 280), $(Scale 130))
+        Size      = [System.Drawing.Size]::new($(Scale 80), $(Scale 28))
+        FlatStyle = 'Flat'
+        BackColor = $script:clrBorder
+        ForeColor = $script:clrText
+    }
+    $btnCancel.FlatAppearance.BorderSize = 0
+
+    $dlg.Controls.AddRange(@($lblFind, $txtFind, $lblReplace, $txtReplace, $btnOk, $btnCancel))
+    $dlg.AcceptButton = $btnOk
+    $dlg.CancelButton = $btnCancel
+
+    if ($dlg.ShowDialog($script:form) -eq [System.Windows.Forms.DialogResult]::OK) {
+        $findText = $txtFind.Text
+        $replaceText = $txtReplace.Text
+        $dlg.Dispose()
+        return [PSCustomObject]@{ Find = $findText; Replace = $replaceText }
+    }
+    $dlg.Dispose()
+    return $null
+}
+
+# ── Cell formatting (color the snapshot status column) ──
+$script:dgvSnapshot.Add_CellFormatting({
+    param($sender, $e)
+    if ($e.ColumnIndex -eq 1 -and $e.RowIndex -ge 0) {
+        $val = $e.Value
+        if ($val -eq 'APPLIED') {
+            $e.CellStyle.ForeColor = $script:clrGreen
+            $e.CellStyle.SelectionForeColor = $script:clrGreen
+            $e.CellStyle.Font = $script:fontBold
+        }
+        elseif ($val -eq 'PENDING') {
+            $e.CellStyle.ForeColor = $script:clrTextDim
+            $e.CellStyle.SelectionForeColor = $script:clrTextDim
+        }
+        elseif ($val -eq 'CONFLICT') {
+            $e.CellStyle.ForeColor = $script:clrOrange
+            $e.CellStyle.SelectionForeColor = $script:clrOrange
+            $e.CellStyle.Font = $script:fontBold
+        }
+        elseif ($val -like 'TARGET*') {
+            $e.CellStyle.ForeColor = $script:clrRed
+            $e.CellStyle.SelectionForeColor = $script:clrRed
+            $e.CellStyle.Font = $script:fontBold
+        }
+    }
+    if ($e.ColumnIndex -eq 2 -and $e.RowIndex -ge 0) {
+        $e.CellStyle.ForeColor = $script:clrAccent
+        $e.CellStyle.SelectionForeColor = $script:clrAccent
+    }
+})
+
+# ── Cell interaction update ──
+$script:dgvSnapshot.Add_CellContentClick({
+    param($sender, $e)
+    if ($e.ColumnIndex -eq 0 -and $e.RowIndex -ge 0) {
+        $script:dgvSnapshot.CommitEdit([System.Windows.Forms.DataGridViewDataErrorContexts]::Commit)
+        Update-SnapshotStatusText
+    }
+})
+
+$script:dgvSnapshot.Add_CellValueChanged({
+    param($sender, $e)
+    if ($e.ColumnIndex -eq 0 -and $e.RowIndex -ge 0) {
+        Update-SnapshotStatusText
+    }
+})
+
+# ── Double-click opens target/link on Snapshot grid ──
+$script:dgvSnapshot.Add_CellDoubleClick({
+    param($sender, $e)
+    if ($e.RowIndex -ge 0) {
+        $targetPath = $script:dgvSnapshot.Rows[$e.RowIndex].Cells['Target'].Value
+        if ($targetPath -and (Test-Path -LiteralPath $targetPath)) {
+            Start-Process explorer.exe -ArgumentList $targetPath
+        } else {
+            $linkPath = $script:dgvSnapshot.Rows[$e.RowIndex].Cells['Link'].Value
+            if ($linkPath -and (Test-Path -LiteralPath $linkPath)) {
+                Start-Process explorer.exe -ArgumentList $linkPath
+            }
+        }
+    }
+})
+
+# ── Context Menu (Snapshot) ──
+$script:ctxSnapshotMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+$script:ctxSnapshotMenu.BackColor = $script:clrPanel
+$script:ctxSnapshotMenu.ForeColor = $script:clrText
+$script:ctxSnapshotMenu.Font      = $script:fontCell
+$script:ctxSnapshotMenu.ShowImageMargin = $false
+
+$ctxSnapApply = [System.Windows.Forms.ToolStripMenuItem]::new('Apply This Junction')
+$ctxSnapApply.ForeColor = $script:clrGreen
+$ctxSnapApply.Add_Click({
+    $row = $script:dgvSnapshot.CurrentRow
+    if (-not $row) { return }
+    $link = [string]$row.Cells['Link'].Value
+    $target = [string]$row.Cells['Target'].Value
+
+    $message = "Apply junction:`n$link`n`nPointing to:`n$target"
+    if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+    try {
+        $result = Restore-MklinkJunction -LinkPath $link -TargetPath $target -OverwriteBackup $false
+        if ($result.Status -eq 'Success' -or $result.Status -eq 'AlreadyExists') {
+            $row.Cells['Status'].Value = 'APPLIED'
+            $row.Cells['Check'].Value = $false
+            $script:lblStatus.Text = "Successfully applied: $link"
+        }
+        elseif ($result.Status -eq 'BackupConflict') {
+            $conflictMsg = "A backup folder already exists at:`n$($result.BackupPath)`n`nDo you want to overwrite it?"
+            if (Confirm-MklinkAction -Message $conflictMsg) {
+                $result2 = Restore-MklinkJunction -LinkPath $link -TargetPath $target -OverwriteBackup
+                if ($result2.Status -eq 'Success' -or $result2.Status -eq 'AlreadyExists') {
+                    $row.Cells['Status'].Value = 'APPLIED'
+                    $row.Cells['Check'].Value = $false
+                    $script:lblStatus.Text = "Successfully applied with overwrite: $link"
+                }
+            } else {
+                $row.Cells['Status'].Value = 'CONFLICT'
+            }
+        }
+    }
+    catch {
+        Show-MklinkError -Message "Failed to apply junction: $($_.Exception.Message)"
+        $row.Cells['Status'].Value = 'ERROR'
+    }
+    Update-SnapshotStatusText
+})
+
+$ctxSnapChangeTarget = [System.Windows.Forms.ToolStripMenuItem]::new('Change Target Path (Redirect)...')
+$ctxSnapChangeTarget.ForeColor = $script:clrText
+$ctxSnapChangeTarget.Add_Click({
+    $row = $script:dgvSnapshot.CurrentRow
+    if (-not $row) { return }
+    $link = [string]$row.Cells['Link'].Value
+    
+    $newTarget = Select-MklinkFolder -Description "Select new target folder for junction: $link"
+    if ($newTarget) {
+        $row.Cells['Target'].Value = $newTarget
+        foreach ($item in $script:loadedSnapshotItems) {
+            if ($item.Link -eq $link) {
+                $item.Target = $newTarget
+                break
+            }
+        }
+        Load-SnapshotGridData
+    }
+})
+
+$ctxSnapOpenLink = [System.Windows.Forms.ToolStripMenuItem]::new('Open Link Folder')
+$ctxSnapOpenLink.ForeColor = $script:clrText
+$ctxSnapOpenLink.Add_Click({
+    $row = $script:dgvSnapshot.CurrentRow
+    if ($row) {
+        $linkPath = $row.Cells['Link'].Value
+        if ($linkPath -and (Test-Path -LiteralPath $linkPath)) {
+            Start-Process explorer.exe -ArgumentList $linkPath
+        }
+    }
+})
+
+$ctxSnapOpenTarget = [System.Windows.Forms.ToolStripMenuItem]::new('Open Target Folder')
+$ctxSnapOpenTarget.ForeColor = $script:clrText
+$ctxSnapOpenTarget.Add_Click({
+    $row = $script:dgvSnapshot.CurrentRow
+    if ($row) {
+        $targetPath = $row.Cells['Target'].Value
+        if ($targetPath -and (Test-Path -LiteralPath $targetPath)) {
+            Start-Process explorer.exe -ArgumentList $targetPath
+        }
+    }
+})
+
+$ctxSnapRemove = [System.Windows.Forms.ToolStripMenuItem]::new('Remove from list')
+$ctxSnapRemove.ForeColor = $script:clrRed
+$ctxSnapRemove.Add_Click({
+    $row = $script:dgvSnapshot.CurrentRow
+    if (-not $row) { return }
+    $link = [string]$row.Cells['Link'].Value
+    
+    $idx = -1
+    for ($i = 0; $i -lt $script:loadedSnapshotItems.Count; $i++) {
+        if ($script:loadedSnapshotItems[$i].Link -eq $link) {
+            $idx = $i
+            break
+        }
+    }
+    if ($idx -ne -1) {
+        $script:loadedSnapshotItems.RemoveAt($idx)
+    }
+    
+    Load-SnapshotGridData
+})
+
+$script:ctxSnapshotMenu.Items.AddRange(@(
+    $ctxSnapApply,
+    $ctxSnapChangeTarget,
+    [System.Windows.Forms.ToolStripSeparator]::new(),
+    $ctxSnapOpenLink,
+    $ctxSnapOpenTarget,
+    [System.Windows.Forms.ToolStripSeparator]::new(),
+    $ctxSnapRemove
+))
+$script:dgvSnapshot.ContextMenuStrip = $script:ctxSnapshotMenu
+
+# Right click selects row on snapshot grid
+$script:dgvSnapshot.Add_CellMouseDown({
+    param($sender, $e)
+    if ($e.Button -eq [System.Windows.Forms.MouseButtons]::Right -and $e.RowIndex -ge 0) {
+        $script:dgvSnapshot.ClearSelection()
+        $script:dgvSnapshot.Rows[$e.RowIndex].Selected = $true
+        $script:dgvSnapshot.CurrentCell = $script:dgvSnapshot.Rows[$e.RowIndex].Cells[0]
+    }
+})
+
+# ── Dynamic Button Positioning and Swapping ──
 function Set-TitleButtonPositions {
     $right = $script:pnlTitle.ClientSize.Width - $(Scale 20)
-    $buttons = @(
-        $script:btnRefresh,
-        $script:btnClearPending,
-        $script:btnChange,
-        $script:btnRevert,
-        $script:btnCreate
-    )
+    
+    $isSnapshot = $false
+    if ($script:tabControl -and $script:tabControl.SelectedIndex -eq 1) {
+        $isSnapshot = $true
+    }
 
-    foreach ($button in $buttons) {
+    $liveButtons = @($script:btnRefresh, $script:btnClearPending, $script:btnChange, $script:btnRevert, $script:btnCreate)
+    $snapButtons = @($script:btnLoadSnapshot, $script:btnSaveSnapshot, $script:btnApplyChecked, $script:btnRedirect, $script:btnToggleAll, $script:btnCaptureLive)
+    
+    foreach ($b in $liveButtons) { $b.Visible = -not $isSnapshot }
+    foreach ($b in $snapButtons) { $b.Visible = $isSnapshot }
+
+    $activeButtons = if ($isSnapshot) {
+        @($script:btnLoadSnapshot, $script:btnSaveSnapshot, $script:btnApplyChecked, $script:btnRedirect, $script:btnToggleAll, $script:btnCaptureLive)
+    } else {
+        @($script:btnRefresh, $script:btnClearPending, $script:btnChange, $script:btnRevert, $script:btnCreate)
+    }
+
+    foreach ($button in $activeButtons) {
         $right -= $button.Width
         $button.Location = [System.Drawing.Point]::new($right, $(Scale 28))
         $right -= $(Scale 8)
     }
 }
 
-# ── Refresh button position update on resize ──
+# ── Resize events ──
 $script:pnlTitle.Add_Resize({
     Set-TitleButtonPositions
+    if ($script:lblHelp) {
+        $rightLimit = $script:pnlTitle.ClientSize.Width - $(Scale 20)
+        $script:lblHelp.Location = [System.Drawing.Point]::new($rightLimit - $script:lblHelp.Width, $(Scale 66))
+    }
 })
 
-# ── Refresh click ──
+# ── Event Bindings ──
 $script:btnRefresh.Add_Click({ Load-JunctionData })
 $script:btnCreate.Add_Click({ Invoke-CreateFromPendingSource })
 $script:btnRevert.Add_Click({ Invoke-RevertSelectedJunction })
@@ -578,13 +1094,259 @@ $script:btnClearPending.Add_Click({
     $script:lblStatus.Text = 'Pending source cleared.'
 })
 
+$script:btnSaveSnapshot.Add_Click({
+    $dialog = [System.Windows.Forms.SaveFileDialog]::new()
+    $dialog.InitialDirectory = Get-MklinkDataPath -SubFolder 'snapshots'
+    $dialog.Filter = 'JSON Files (*.json)|*.json|All Files (*.*)|*.*'
+    $dialog.Title = 'Save Junctions Snapshot'
+    $dialog.FileName = "mklink_snapshot_$(Get-Date -Format 'yyyyMMdd').json"
+    try {
+        if ($dialog.ShowDialog($script:form) -eq [System.Windows.Forms.DialogResult]::OK) {
+            Export-MklinkSnapshot -Path $dialog.FileName
+            $script:lblStatus.Text = "Snapshot saved to: $(Split-Path $dialog.FileName -Leaf)"
+        }
+    }
+    catch {
+        Show-MklinkError -Message "Failed to save snapshot: $($_.Exception.Message)"
+    }
+    finally {
+        $dialog.Dispose()
+    }
+})
+
+$script:btnLoadSnapshot.Add_Click({
+    $dialog = [System.Windows.Forms.OpenFileDialog]::new()
+    $dialog.InitialDirectory = Get-MklinkDataPath -SubFolder 'snapshots'
+    $dialog.Filter = 'JSON Files (*.json)|*.json|All Files (*.*)|*.*'
+    $dialog.Title = 'Load Junctions Snapshot'
+    try {
+        if ($dialog.ShowDialog($script:form) -eq [System.Windows.Forms.DialogResult]::OK) {
+            $items = Import-MklinkSnapshot -Path $dialog.FileName
+            $script:loadedSnapshotItems.Clear()
+            foreach ($item in $items) {
+                $script:loadedSnapshotItems.Add($item)
+            }
+            $script:btnToggleAll.Text = 'Uncheck All'
+            Load-SnapshotGridData
+            $script:lblStatus.Text = "Loaded $(Split-Path $dialog.FileName -Leaf) with $($items.Count) items."
+        }
+    }
+    catch {
+        Show-MklinkError -Message "Failed to load snapshot: $($_.Exception.Message)"
+    }
+    finally {
+        $dialog.Dispose()
+    }
+})
+
+$script:btnToggleAll.Add_Click({
+    if ($script:dgvSnapshot.Rows.Count -eq 0) { return }
+    
+    $currentText = $script:btnToggleAll.Text
+    $newValue = $true
+    if ($currentText -eq 'Check All') {
+        $script:btnToggleAll.Text = 'Uncheck All'
+        $newValue = $true
+    } else {
+        $script:btnToggleAll.Text = 'Check All'
+        $newValue = $false
+    }
+    
+    $script:dgvSnapshot.SuspendLayout()
+    foreach ($row in $script:dgvSnapshot.Rows) {
+        $row.Cells['Check'].Value = $newValue
+    }
+    $script:dgvSnapshot.ResumeLayout()
+    Update-SnapshotStatusText
+})
+
+$script:btnRedirect.Add_Click({
+    if ($script:loadedSnapshotItems.Count -eq 0) {
+        Show-MklinkError -Message 'Please load a snapshot first.'
+        return
+    }
+
+    $res = Show-RedirectDialog
+    if ($res) {
+        $find = $res.Find
+        $replace = $res.Replace
+        
+        if ([string]::IsNullOrEmpty($find)) { return }
+
+        $changedCount = 0
+        foreach ($item in $script:loadedSnapshotItems) {
+            if ($item.Target -like "*$find*") {
+                $item.Target = $item.Target -replace [regex]::Escape($find), $replace
+                $changedCount++
+            }
+        }
+        
+        Load-SnapshotGridData
+        $script:lblStatus.Text = "Redirected $changedCount targets ($find -> $replace)."
+    }
+})
+
+$script:btnApplyChecked.Add_Click({
+    $checkedRows = @()
+    foreach ($row in $script:dgvSnapshot.Rows) {
+        if ($row.Cells['Check'].Value) {
+            $checkedRows += $row
+        }
+    }
+
+    if ($checkedRows.Count -eq 0) {
+        Show-MklinkError -Message 'No junctions selected. Please check the items you want to apply.'
+        return
+    }
+
+    $message = "Apply $($checkedRows.Count) selected junctions?`n`nNote: If the Link folder already exists as a normal directory, it will be automatically backed up by adding '_backup' to its name."
+    if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+    $successCount = 0
+    $failCount = 0
+    
+    $overwriteAllBackups = $false
+    $skipAllConflicts = $false
+
+    foreach ($row in $checkedRows) {
+        $link = [string]$row.Cells['Link'].Value
+        $target = [string]$row.Cells['Target'].Value
+        
+        if (-not (Test-Path -LiteralPath $target)) {
+            $row.Cells['Status'].Value = 'TARGET MISSING'
+            $failCount++
+            continue
+        }
+
+        $applied = $false
+        $tryApply = $true
+        $forceBackup = $false
+        
+        while ($tryApply) {
+            try {
+                $result = Restore-MklinkJunction -LinkPath $link -TargetPath $target -OverwriteBackup ($overwriteAllBackups -or $forceBackup)
+                if ($result.Status -eq 'Success' -or $result.Status -eq 'AlreadyExists') {
+                    $row.Cells['Status'].Value = 'APPLIED'
+                    $row.Cells['Check'].Value = $false
+                    $successCount++
+                    $applied = $true
+                    $tryApply = $false
+                }
+                elseif ($result.Status -eq 'BackupConflict') {
+                    if ($skipAllConflicts) {
+                        $row.Cells['Status'].Value = 'CONFLICT'
+                        $failCount++
+                        $tryApply = $false
+                        break
+                    }
+                    if ($overwriteAllBackups) {
+                        $forceBackup = $true
+                        continue
+                    }
+
+                    $conflictMsg = "A backup folder already exists at:`n$($result.BackupPath)`n`nDo you want to overwrite it?`n(Yes = Overwrite, No = Skip, Cancel = Stop whole process)"
+                    $choice = [System.Windows.Forms.MessageBox]::Show(
+                        $script:form,
+                        $conflictMsg,
+                        'Backup Conflict',
+                        [System.Windows.Forms.MessageBoxButtons]::YesNoCancel,
+                        [System.Windows.Forms.MessageBoxIcon]::Warning
+                    )
+                    
+                    if ($choice -eq [System.Windows.Forms.DialogResult]::Yes) {
+                        $forceBackup = $true
+                    }
+                    elseif ($choice -eq [System.Windows.Forms.DialogResult]::No) {
+                        $row.Cells['Status'].Value = 'CONFLICT'
+                        $failCount++
+                        $tryApply = $false
+                    }
+                    else {
+                        $row.Cells['Status'].Value = 'CONFLICT'
+                        $failCount++
+                        $tryApply = $false
+                        $script:lblStatus.Text = "Process aborted. Applied $successCount, failed/skipped $failCount."
+                        Load-SnapshotGridData
+                        return
+                    }
+                }
+            }
+            catch {
+                $row.Cells['Status'].Value = 'ERROR'
+                $failCount++
+                $tryApply = $false
+                Write-MklinkLog "Error restoring junction ${link} -> ${target}: $($_.Exception.Message)"
+            }
+        }
+    }
+
+    $script:lblStatus.Text = "Restore complete: $successCount applied, $failCount failed/skipped."
+    Load-SnapshotGridData
+})
+
+$script:btnCaptureLive.Add_Click({
+    try {
+        $junctions = Get-UserJunctions
+        $script:loadedSnapshotItems.Clear()
+        foreach ($j in $junctions) {
+            $script:loadedSnapshotItems.Add([PSCustomObject]@{
+                Name     = $j.Name
+                Link     = $j.Link
+                Target   = $j.Target
+                Category = $j.Category
+                OriginalLink = $j.Link -ireplace ([regex]::Escape($env:USERPROFILE), '%USERPROFILE%')
+                OriginalTarget = $j.Target -ireplace ([regex]::Escape($env:USERPROFILE), '%USERPROFILE%')
+            })
+        }
+        $script:btnToggleAll.Text = 'Uncheck All'
+        Load-SnapshotGridData
+        $script:lblStatus.Text = "Captured $($junctions.Count) live junctions into snapshot list."
+    }
+    catch {
+        Show-MklinkError -Message "Failed to capture live junctions: $($_.Exception.Message)"
+    }
+})
+
+# Initialize button positions and labels
 Set-TitleButtonPositions
+if ($script:lblHelp) {
+    $rightLimit = $script:pnlTitle.ClientSize.Width - $(Scale 20)
+    $script:lblHelp.Location = [System.Drawing.Point]::new($rightLimit - $script:lblHelp.Width, $(Scale 66))
+}
 Update-PendingSourceStatus
 
-# ── Assemble Layout ──
+# ── TabControl Layout Assembly ──
+$script:tabControl = [System.Windows.Forms.TabControl]::new()
+$script:tabControl.Dock = 'Fill'
+$script:tabControl.Font = [System.Drawing.Font]::new($script:fontFamily, 9.5, [System.Drawing.FontStyle]::Bold)
+
+$script:tabLive = [System.Windows.Forms.TabPage]::new('Live Junctions')
+$script:tabLive.BackColor = $script:clrBg
+$script:tabLive.ForeColor = $script:clrText
+$script:tabLive.Controls.Add($script:dgv)
+
+$script:tabSnapshot = [System.Windows.Forms.TabPage]::new('Snapshot Junctions')
+$script:tabSnapshot.BackColor = $script:clrBg
+$script:tabSnapshot.ForeColor = $script:clrText
+$script:tabSnapshot.Controls.Add($script:dgvSnapshot)
+
+$script:tabControl.TabPages.Add($script:tabLive)
+$script:tabControl.TabPages.Add($script:tabSnapshot)
+
+$script:tabControl.Add_SelectedIndexChanged({
+    Set-TitleButtonPositions
+    if ($script:tabControl.SelectedIndex -eq 0) {
+        $script:lblSubtitle.Text = 'Active Junctions & Symbolic Links'
+        Load-JunctionData
+    } else {
+        $script:lblSubtitle.Text = 'Manage and Restore Junction Snapshots'
+        Update-SnapshotStatusText
+    }
+})
+
 # WinForms Dock order: Fill must be added FIRST to the form,
 # then Bottom, then Top (last-added Dock=Top renders on top)
-$script:form.Controls.Add($script:dgv)
+$script:form.Controls.Add($script:tabControl)
 $script:form.Controls.Add($script:pnlStatus)
 $script:form.Controls.Add($script:pnlTitle)
 

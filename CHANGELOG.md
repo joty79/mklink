@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-09
+
+- Προσθήκη δυνατότητας Snapshot (Export/Import JSON) στο `MklinkManager.ps1` για τη διατήρηση και μεταφορά των junctions.
+- Ενσωμάτωση Tab Control στο GUI του Manager με δύο καρτέλες: "Live Junctions" και "Snapshot Junctions".
+- Προσθήκη δυναμικών κουμπιών στο Title Panel ("Load Snapshot", "Save Snapshot", "Apply Checked", "Global Redirect", "Check All", "Capture Live") που εναλλάσσονται αυτόματα.
+- Υλοποίηση λειτουργίας "Global Redirect" για μαζική αντικατάσταση των target paths στο Snapshot (π.χ. αλλαγή γραμμάτων δίσκου).
+- Προσθήκη Context Menu στο Snapshot Grid με επιλογές για μεμονωμένη εφαρμογή ("Apply This Junction"), redirect, άνοιγμα φακέλων, και αφαίρεση από τη λίστα.
+- Υλοποίηση αυτόματου backup στο `MklinkCore.ps1` κατά την εφαρμογή snapshot αν στο `LinkPath` υπάρχει ήδη κανονικός φάκελος (μετονομασία σε `_backup`).
+- Προσθήκη κουμπιού "Capture Live" στην καρτέλα των Snapshots για απευθείας λήψη των ενεργών junctions του συστήματος στη λίστα.
+- Προσθήκη ετικέτας επεξήγησης (Description Label) στο Title Panel που εμφανίζει πληροφορίες για τη λειτουργία κάθε κουμπιού όταν ο χρήστης περνάει το ποντίκι από πάνω του (Hover effect).
+- Οργάνωση των παραγόμενων αρχείων δεδομένων και καταγραφών (logs, snapshots) σε ξεχωριστούς υποφακέλους `data\logs` και `data\snapshots` για καθαρότερη δομή φακέλων.
+
 ## 2026-05-11
 
 - Added InstallerCore onboarding with generated `Install.ps1`, `app-metadata.json`, and repo-local `.assets\icons\mklink.ico`.

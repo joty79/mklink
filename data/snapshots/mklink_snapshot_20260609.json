@@ -1,0 +1,248 @@
+[
+  {
+    "Name": "Chrome",
+    "Link": "%USERPROFILE%\\AppData\\Local\\Google\\Chrome",
+    "Target": "D:\\Temp\\Chrome",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "cursor-updater",
+    "Link": "%USERPROFILE%\\AppData\\Local\\cursor-updater",
+    "Target": "D:\\Temp\\Cursor\\cursor-updater",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "datalab",
+    "Link": "%USERPROFILE%\\AppData\\Local\\datalab",
+    "Target": "D:\\Temp\\datalab",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "Edge",
+    "Link": "%USERPROFILE%\\AppData\\Local\\Microsoft\\Edge",
+    "Target": "D:\\Temp\\Edge",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "pip",
+    "Link": "%USERPROFILE%\\AppData\\Local\\pip",
+    "Target": "D:\\Temp\\pip",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "Profiles",
+    "Link": "%USERPROFILE%\\AppData\\Local\\Mozilla\\Firefox\\Profiles",
+    "Target": "D:\\Temp\\firefox\\Profiles",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "Temporary Internet Files",
+    "Link": "%USERPROFILE%\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files",
+    "Target": "%USERPROFILE%\\AppData\\Local\\Microsoft\\Windows\\INetCache",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "Unity",
+    "Link": "%USERPROFILE%\\AppData\\Local\\Unity",
+    "Target": "D:\\Temp\\Unity\\",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "vscode-cpptools",
+    "Link": "%USERPROFILE%\\AppData\\Local\\Microsoft\\vscode-cpptools",
+    "Target": "D:\\Temp\\vscode\\vscode-cpptools",
+    "Category": "AppData (Local)"
+  },
+  {
+    "Name": "Antigravity",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Antigravity",
+    "Target": "D:\\Temp\\Antigravity",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "Code",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Code",
+    "Target": "D:\\Temp\\vscode\\Code",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "Code - Insiders",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Code - Insiders",
+    "Target": "D:\\Temp\\vscode\\Code - Insiders",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "Cursor",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Cursor",
+    "Target": "D:\\Temp\\Cursor",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "EldenRing",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\EldenRing",
+    "Target": "D:\\Temp\\EldenRing",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "Mozilla",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Mozilla",
+    "Target": "D:\\Temp\\Mozilla",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "Notepad++",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Notepad++",
+    "Target": "D:\\Users\\joty79\\Notepad++",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "Sublime Text",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\Sublime Text",
+    "Target": "D:\\Users\\joty79\\Sublime Text",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "TabNine",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\TabNine",
+    "Target": "D:\\Temp\\vscode\\TabNine",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": "uTorrent",
+    "Link": "%USERPROFILE%\\AppData\\Roaming\\uTorrent",
+    "Target": "D:\\Temp\\uTorrent",
+    "Category": "AppData (Roaming)"
+  },
+  {
+    "Name": ".agent-shared",
+    "Link": "%USERPROFILE%\\.agent-shared",
+    "Target": "D:\\Users\\joty79\\.agent-shared",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".antigravity-ide",
+    "Link": "%USERPROFILE%\\.antigravity-ide",
+    "Target": "D:\\Users\\joty79\\.antigravity-ide",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".chocolatey",
+    "Link": "%USERPROFILE%\\.chocolatey",
+    "Target": "D:\\Users\\joty79\\.chocolatey",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".codex",
+    "Link": "%USERPROFILE%\\.codex",
+    "Target": "D:\\Users\\joty79\\.codex",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".conda",
+    "Link": "%USERPROFILE%\\.conda",
+    "Target": "D:\\Users\\joty79\\.conda",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".config",
+    "Link": "%USERPROFILE%\\.config",
+    "Target": "D:\\Users\\joty79\\.config",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".continue",
+    "Link": "%USERPROFILE%\\.continue",
+    "Target": "D:\\Users\\joty79\\.continue",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".copilot",
+    "Link": "%USERPROFILE%\\.copilot",
+    "Target": "D:\\Users\\joty79\\.copilot",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".cursor",
+    "Link": "%USERPROFILE%\\.cursor",
+    "Target": "D:\\Users\\joty79\\.cursor",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".dotnet",
+    "Link": "%USERPROFILE%\\.dotnet",
+    "Target": "D:\\Users\\joty79\\.dotnet",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".gemini",
+    "Link": "%USERPROFILE%\\.gemini",
+    "Target": "D:\\Users\\joty79\\.gemini",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".github",
+    "Link": "%USERPROFILE%\\.github",
+    "Target": "D:\\Users\\joty79\\.github",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".m2",
+    "Link": "%USERPROFILE%\\.m2",
+    "Target": "D:\\Users\\joty79\\.m2",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".redhat",
+    "Link": "%USERPROFILE%\\.redhat",
+    "Target": "D:\\Users\\joty79\\.redhat",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".streamlit",
+    "Link": "%USERPROFILE%\\.streamlit",
+    "Target": "D:\\Users\\joty79\\.streamlit",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".supermaven",
+    "Link": "%USERPROFILE%\\.supermaven",
+    "Target": "D:\\Users\\joty79\\.supermaven",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".thumbnails",
+    "Link": "%USERPROFILE%\\.thumbnails",
+    "Target": "D:\\Users\\joty79\\.thumbnails",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".vscode",
+    "Link": "%USERPROFILE%\\.vscode",
+    "Target": "D:\\Users\\joty79\\.vscode",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": ".vscode-insiders",
+    "Link": "%USERPROFILE%\\.vscode-insiders",
+    "Target": "D:\\Users\\joty79\\.vscode-insiders",
+    "Category": "Dotfiles / Config"
+  },
+  {
+    "Name": "current",
+    "Link": "%USERPROFILE%\\scoop\\apps\\oh-my-posh\\current",
+    "Target": "%USERPROFILE%\\scoop\\apps\\oh-my-posh\\29.14.0",
+    "Category": "Other"
+  },
+  {
+    "Name": "current",
+    "Link": "%USERPROFILE%\\scoop\\apps\\scoop-search\\current",
+    "Target": "%USERPROFILE%\\scoop\\apps\\scoop-search\\2.1.0",
+    "Category": "Other"
+  },
+  {
+    "Name": "source",
+    "Link": "%USERPROFILE%\\source",
+    "Target": "D:\\Users\\joty79\\source",
+    "Category": "User Profile"
+  }
+]

@@ -2,13 +2,34 @@
 
 $script:MklinkRegistryPath = 'HKCU:\RCWM\mklink'
 
+function Get-MklinkDataPath {
+    param(
+        [string]$SubFolder,
+        [string]$FileName
+    )
+
+    $dataDir = Join-Path $PSScriptRoot 'data'
+    if ($SubFolder) {
+        $dataDir = Join-Path $dataDir $SubFolder
+    }
+
+    if (-not (Test-Path -LiteralPath $dataDir)) {
+        $null = New-Item -ItemType Directory -Path $dataDir -Force -ErrorAction SilentlyContinue
+    }
+
+    if ($FileName) {
+        return Join-Path $dataDir $FileName
+    }
+    return $dataDir
+}
+
 function Write-MklinkLog {
     param(
         [Parameter(Mandatory)]
         [string]$Message
     )
 
-    $logPath = Join-Path $PSScriptRoot 'mklink.log'
+    $logPath = Get-MklinkDataPath -SubFolder 'logs' -FileName 'mklink.log'
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     Add-Content -LiteralPath $logPath -Value "[$timestamp] $Message"
 }
@@ -336,3 +357,147 @@ function Get-UserJunctions {
 
     return $results | Sort-Object Category, Name
 }
+
+function Export-MklinkSnapshot {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
+
+    $junctions = Get-UserJunctions
+    $serialized = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $userProfile = [regex]::Escape($env:USERPROFILE)
+
+    foreach ($j in $junctions) {
+        # Replace UserProfile with placeholder %USERPROFILE% case-insensitively
+        $linkPlaceholder = $j.Link -ireplace $userProfile, '%USERPROFILE%'
+        $targetPlaceholder = $j.Target -ireplace $userProfile, '%USERPROFILE%'
+
+        $serialized.Add([PSCustomObject]@{
+            Name     = $j.Name
+            Link     = $linkPlaceholder
+            Target   = $targetPlaceholder
+            Category = $j.Category
+        })
+    }
+
+    # Convert to JSON with pretty print
+    $json = ConvertTo-Json -InputObject $serialized -Depth 5
+    Set-Content -LiteralPath $Path -Value $json -Encoding utf8 -Force
+    Write-MklinkLog "Snapshot exported to: $Path ($($serialized.Count) items)"
+}
+
+function Import-MklinkSnapshot {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Snapshot file not found: $Path"
+    }
+
+    $content = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop
+    $data = ConvertFrom-Json -InputObject $content -ErrorAction Stop
+
+    $results = [System.Collections.Generic.List[PSCustomObject]]::new()
+    foreach ($item in $data) {
+        # Replace placeholder with current user profile path
+        $resolvedLink = $item.Link -replace '%USERPROFILE%', $env:USERPROFILE
+        $resolvedTarget = $item.Target -replace '%USERPROFILE%', $env:USERPROFILE
+
+        $results.Add([PSCustomObject]@{
+            Name     = $item.Name
+            Link     = $resolvedLink
+            Target   = $resolvedTarget
+            Category = $item.Category
+            OriginalLink = $item.Link
+            OriginalTarget = $item.Target
+        })
+    }
+
+    Write-MklinkLog "Snapshot imported from: $Path ($($results.Count) items)"
+    return $results
+}
+
+function Restore-MklinkJunction {
+    param(
+        [Parameter(Mandatory)]
+        [string]$LinkPath,
+
+        [Parameter(Mandatory)]
+        [string]$TargetPath,
+
+        [switch]$OverwriteBackup
+    )
+
+    # Ensure target directory exists
+    if (-not (Test-Path -LiteralPath $TargetPath)) {
+        throw "Target folder does not exist: $TargetPath"
+    }
+
+    # Ensure parent directory of the link path exists
+    $parentDir = Split-Path -Path $LinkPath -Parent
+    if ($parentDir -and -not (Test-Path -LiteralPath $parentDir)) {
+        $null = New-Item -ItemType Directory -Path $parentDir -Force -ErrorAction Stop
+    }
+
+    # Check if something already exists at LinkPath
+    if (Test-Path -LiteralPath $LinkPath) {
+        # Get type of existing item
+        $item = Get-Item -LiteralPath $LinkPath -Force
+        
+        if ($item.LinkType -eq 'Junction') {
+            # It's already a junction.
+            $currentInfo = Get-MklinkItemInfo -Path $LinkPath
+            if ($currentInfo.Target -eq $TargetPath) {
+                # It already points to the correct target, nothing to do!
+                Write-MklinkLog "Junction already exists and is correct: $LinkPath -> $TargetPath"
+                return [PSCustomObject]@{ Status = 'AlreadyExists'; Message = 'Junction already exists and points to the correct target.' }
+            } else {
+                # It points to a different target. Remove old junction and recreate.
+                Write-MklinkLog "Removing existing junction pointing to different target: $LinkPath ($($currentInfo.Target) -> $TargetPath)"
+                Remove-Item -LiteralPath $LinkPath -Force -ErrorAction Stop
+            }
+        }
+        elseif ($item.PSIsContainer) {
+            # It's a normal directory. We need to back it up.
+            $backupPath = "${LinkPath}_backup"
+            if (Test-Path -LiteralPath $backupPath) {
+                if ($OverwriteBackup) {
+                    Write-MklinkLog "OverwriteBackup set. Removing old backup directory: $backupPath"
+                    Remove-Item -LiteralPath $backupPath -Recurse -Force -ErrorAction Stop
+                } else {
+                    return [PSCustomObject]@{ Status = 'BackupConflict'; BackupPath = $backupPath; Message = "A backup folder already exists at: $backupPath" }
+                }
+            }
+
+            Write-MklinkLog "Backing up normal folder at LinkPath: $LinkPath -> $backupPath"
+            Move-Item -LiteralPath $LinkPath -Destination $backupPath -Force -ErrorAction Stop
+        }
+        else {
+            # It's a file or something else.
+            $backupPath = "${LinkPath}_backup"
+            if (Test-Path -LiteralPath $backupPath) {
+                if ($OverwriteBackup) {
+                    Remove-Item -LiteralPath $backupPath -Force -ErrorAction Stop
+                } else {
+                    return [PSCustomObject]@{ Status = 'BackupConflict'; BackupPath = $backupPath; Message = "A backup file already exists at: $backupPath" }
+                }
+            }
+            Write-MklinkLog "Backing up file at LinkPath: $LinkPath -> $backupPath"
+            Move-Item -LiteralPath $LinkPath -Destination $backupPath -Force -ErrorAction Stop
+        }
+    }
+
+    # Now create the junction
+    Write-MklinkLog "Creating restored junction: $LinkPath -> $TargetPath"
+    $cmdOutput = & cmd.exe /d /c mklink /J "`"$LinkPath`"" "`"$TargetPath`"" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "mklink failed with exit code $LASTEXITCODE. $($cmdOutput -join ' ')"
+    }
+
+    Write-MklinkLog "Successfully restored junction: $LinkPath -> $TargetPath"
+    return [PSCustomObject]@{ Status = 'Success'; Message = 'Junction created successfully.' }
+}
+

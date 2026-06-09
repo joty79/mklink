@@ -96,7 +96,8 @@ $script:ProfileJson = @'
     "logs",
     "state",
     "mklink.log",
-    "error_log.txt"
+    "error_log.txt",
+    "data"
   ],
   "uninstall_preserve_files": [
     "Install.ps1"

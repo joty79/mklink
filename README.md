@@ -53,8 +53,10 @@ Result
 
 ## Mklink Manager
 
-`MklinkManager.ps1` σκανάρει junctions κάτω από το user profile και δείχνει status, category, junction path και target path.
+`MklinkManager.ps1` εμφανίζει μια WinForms διεπαφή με δύο καρτέλες (Tabs) για τη διαχείριση των junctions:
 
+### 1. Live Junctions
+Σκανάρει τα junctions κάτω από το user profile και δείχνει status, category, junction path και target path.
 | Action | Behavior |
 |--------|----------|
 | `Create` | Χρησιμοποιεί το pending source και ζητά destination folder |
@@ -62,6 +64,21 @@ Result
 | `Change` | Μεταφέρει το current target σε νέο destination και ξαναδημιουργεί το junction |
 | `Clear Source` | Καθαρίζει το saved pending source |
 | Row context menu | Open/copy paths, change destination, revert junction |
+
+### 2. Snapshot Junctions
+Επιτρέπει την εξαγωγή (Export) των τρεχόντων junctions σε αρχείο JSON (με αυτόματη αντικατάσταση του user profile path με `%USERPROFILE%`), την εισαγωγή (Import) τους σε νέο σύστημα Windows, και την επιλεκτική τους εφαρμογή.
+| Action | Behavior |
+|--------|----------|
+| `Save Snapshot` | Εξάγει όλα τα live junctions σε ένα αρχείο JSON |
+| `Load Snapshot` | Φορτώνει ένα αρχείο JSON snapshot |
+| `Capture Live` | Απευθείας λήψη των live junctions του συστήματος στη λίστα του Snapshot χωρίς χρήση αρχείου |
+| `Apply Checked` | Εφαρμόζει μαζικά τα επιλεγμένα junctions (με αυτόματο backup του `LinkPath` αν είναι κανονικός φάκελος) |
+| `Global Redirect` | Μαζική εύρεση και αντικατάσταση στα target paths (π.χ. αλλαγή γραμμάτων δίσκου `D:\` -> `E:\`) |
+| `Check All` / `Uncheck All` | Μαζική επιλογή/αποεπιλογή των γραμμών |
+| Row context menu | Apply This Junction, Change Target Path (individual redirect), Open folders, Remove from list |
+
+* **Hover Descriptions**: Όταν περνάτε το ποντίκι πάνω από οποιοδήποτε κουμπί στην κορυφή του Manager, εμφανίζεται μια σύντομη επεξήγηση της λειτουργίας του στο κενό χώρο κάτω από τα κουμπιά (Help Label).
+
 
 ## Mklink Core
 
@@ -76,6 +93,9 @@ Result
 | `Revert-MklinkJunction` | Επαναφέρει junction σε κανονικό folder |
 | `Move-MklinkJunctionTarget` | Αλλάζει destination ενός junction |
 | `Get-UserJunctions` | Σκανάρει user profile για junctions |
+| `Export-MklinkSnapshot` | Εξάγει junctions σε αρχείο JSON με `%USERPROFILE%` placeholders |
+| `Import-MklinkSnapshot` | Φορτώνει και αναλύει JSON snapshot επεκτείνοντας το `%USERPROFILE%` |
+| `Restore-MklinkJunction` | Δημιουργεί junction από snapshot με αυτόματο backup (`_backup`) σε διενέξεις φακέλων |
 
 ## Installation
 
@@ -119,6 +139,11 @@ mklink/
 ├── .assets/
 │   └── icons/
 │       └── mklink.ico    # Context-menu icon
+├── data/                 # Subfolder for logs and snapshots
+│   ├── logs/             # Folder containing log files
+│   │   ├── mklink.log    # Core activity log file
+│   │   └── error_log.txt # Script runtime error log file
+│   └── snapshots/        # Folder containing JSON snapshot files
 ├── MklinkCore.ps1        # Shared junction logic
 ├── MklinkManager.ps1     # WinForms GUI manager
 ├── MklinkManager.vbs     # Hidden console launcher for GUI
