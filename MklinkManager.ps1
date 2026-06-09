@@ -180,12 +180,13 @@ function Add-ButtonHoverDescription {
         [string]$Description
     )
 
+    $Button.Tag = $Description
     $Button.Add_MouseEnter({
-        $script:lblHelp.Text = $Description
-    }.GetNewClosure())
+        $script:lblHelp.Text = $this.Tag
+    })
     $Button.Add_MouseLeave({
         $script:lblHelp.Text = ''
-    }.GetNewClosure())
+    })
 }
 
 # Attach descriptions
