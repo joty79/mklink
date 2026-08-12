@@ -34,17 +34,69 @@ function Write-MklinkLog {
     Add-Content -LiteralPath $logPath -Value "[$timestamp] $Message"
 }
 
-function Get-MklinkPendingSource {
+function Get-MklinkPendingSelection {
     if (-not (Test-Path -LiteralPath $script:MklinkRegistryPath)) {
         return $null
     }
 
-    $props = Get-ItemProperty -LiteralPath $script:MklinkRegistryPath -Name 'SourcePath' -ErrorAction SilentlyContinue
+    $props = Get-ItemProperty -LiteralPath $script:MklinkRegistryPath -ErrorAction SilentlyContinue
     if (-not $props.SourcePath) {
         return $null
     }
 
-    return [string]$props.SourcePath
+    $mode = [string]$props.PendingMode
+    if ($mode -notin @('MoveSource', 'ExistingTarget')) {
+        $mode = 'MoveSource'
+    }
+
+    [PSCustomObject]@{
+        Path = [string]$props.SourcePath
+        Mode = $mode
+    }
+}
+
+function Get-MklinkPendingSource {
+    $selection = Get-MklinkPendingSelection
+    if (-not $selection) {
+        return $null
+    }
+
+    return $selection.Path
+}
+
+function Set-MklinkPendingSelection {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$FolderPath,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('MoveSource', 'ExistingTarget')]
+        [string]$Mode
+    )
+
+    $resolved = (Resolve-Path -LiteralPath $FolderPath -ErrorAction Stop).Path
+    $item = Get-Item -LiteralPath $resolved -Force -ErrorAction Stop
+    if (-not $item.PSIsContainer) {
+        throw "Selected path is not a folder: $resolved"
+    }
+    if ($item.LinkType) {
+        throw "Selected folder is already a reparse point: $resolved"
+    }
+
+    if (-not (Test-Path -LiteralPath $script:MklinkRegistryPath)) {
+        New-Item -Path $script:MklinkRegistryPath -Force | Out-Null
+    }
+
+    Remove-ItemProperty `
+        -LiteralPath $script:MklinkRegistryPath `
+        -Name 'SourcePath', 'PendingMode' `
+        -ErrorAction SilentlyContinue
+    New-ItemProperty -LiteralPath $script:MklinkRegistryPath -Name 'SourcePath' -Value $resolved -Force | Out-Null
+    New-ItemProperty -LiteralPath $script:MklinkRegistryPath -Name 'PendingMode' -Value $Mode -Force | Out-Null
+    Write-MklinkLog "Pending selection set: mode=$Mode; path=$resolved"
+
+    return Get-MklinkPendingSelection
 }
 
 function Set-MklinkPendingSource {
@@ -54,29 +106,28 @@ function Set-MklinkPendingSource {
         [string]$SourcePath
     )
 
-    $resolved = (Resolve-Path -LiteralPath $SourcePath -ErrorAction Stop).Path
-    $item = Get-Item -LiteralPath $resolved -Force -ErrorAction Stop
-    if (-not $item.PSIsContainer) {
-        throw "Source path is not a folder: $resolved"
-    }
+    return Set-MklinkPendingSelection -FolderPath $SourcePath -Mode 'MoveSource'
+}
 
-    if (-not (Test-Path -LiteralPath $script:MklinkRegistryPath)) {
-        New-Item -Path $script:MklinkRegistryPath -Force | Out-Null
-    }
+function Set-MklinkPendingExistingTarget {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$TargetPath
+    )
 
-    Remove-ItemProperty -LiteralPath $script:MklinkRegistryPath -Name * -ErrorAction SilentlyContinue
-    New-ItemProperty -LiteralPath $script:MklinkRegistryPath -Name 'SourcePath' -Value $resolved -Force | Out-Null
-    Write-MklinkLog "Pending source set: $resolved"
-
-    return $resolved
+    return Set-MklinkPendingSelection -FolderPath $TargetPath -Mode 'ExistingTarget'
 }
 
 function Clear-MklinkPendingSource {
     if (Test-Path -LiteralPath $script:MklinkRegistryPath) {
-        Remove-ItemProperty -LiteralPath $script:MklinkRegistryPath -Name * -ErrorAction SilentlyContinue
+        Remove-ItemProperty `
+            -LiteralPath $script:MklinkRegistryPath `
+            -Name 'SourcePath', 'PendingMode' `
+            -ErrorAction SilentlyContinue
     }
 
-    Write-MklinkLog 'Pending source cleared'
+    Write-MklinkLog 'Pending selection cleared'
 }
 
 function Get-MklinkItemInfo {
@@ -179,6 +230,55 @@ function New-MklinkJunctionMove {
     [PSCustomObject]@{
         LinkPath   = $source
         TargetPath = $newLocation
+    }
+}
+
+function New-MklinkJunctionForExistingTarget {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$TargetPath,
+
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]$LinkParentDirectory
+    )
+
+    $target = (Resolve-Path -LiteralPath $TargetPath -ErrorAction Stop).Path
+    $linkParent = (Resolve-Path -LiteralPath $LinkParentDirectory -ErrorAction Stop).Path
+    $targetItem = Get-Item -LiteralPath $target -Force -ErrorAction Stop
+    $linkParentItem = Get-Item -LiteralPath $linkParent -Force -ErrorAction Stop
+
+    if (-not $targetItem.PSIsContainer) {
+        throw "Existing target is not a folder: $target"
+    }
+    if ($targetItem.LinkType) {
+        throw "Existing target is already a reparse point: $target"
+    }
+    if (-not $linkParentItem.PSIsContainer) {
+        throw "Junction parent path is not a folder: $linkParent"
+    }
+
+    $targetName = Split-Path -Path $target -Leaf
+    if (-not $targetName) {
+        throw "Cannot create a named junction for the root path: $target"
+    }
+
+    $linkPath = Join-Path $linkParent $targetName
+    $existingItem = Get-Item -LiteralPath $linkPath -Force -ErrorAction SilentlyContinue
+    if ($null -ne $existingItem) {
+        throw "Cannot create junction because the link path already exists: $linkPath"
+    }
+
+    Write-MklinkLog "Existing-target junction requested: $linkPath -> $target"
+    $null = New-Item -ItemType Junction -Path $linkPath -Target $target -ErrorAction Stop
+
+    Clear-MklinkPendingSource
+    Write-MklinkLog "Created junction for existing target: $linkPath -> $target"
+
+    [PSCustomObject]@{
+        LinkPath   = $linkPath
+        TargetPath = $target
     }
 }
 
@@ -500,4 +600,3 @@ function Restore-MklinkJunction {
     Write-MklinkLog "Successfully restored junction: $LinkPath -> $TargetPath"
     return [PSCustomObject]@{ Status = 'Success'; Message = 'Junction created successfully.' }
 }
-

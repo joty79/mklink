@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-12
+
+- Added `Set as existing target`, allowing a real folder that is already at its final location to be selected before creating a same-name Junction from another folder background.
+- Kept `Set as source (move)` as the original move-then-link workflow and made the pending action mode visible in Mklink Manager.
+- Added strict collision protection: existing-target creation never moves the target and refuses to overwrite any existing link path.
+
 ## 2026-06-09
 
 - Προσθήκη δυνατότητας Snapshot (Export/Import JSON) στο `MklinkManager.ps1` για τη διατήρηση και μεταφορά των junctions.

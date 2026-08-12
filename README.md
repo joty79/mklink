@@ -25,23 +25,24 @@
 ```text
 Right-click σε folder:
 mklink
-  Set as source
+  Set as source (move)
+  Set as existing target
   Revert junction
   Open Manager
-  Clear pending source
+  Clear pending selection
 
 Right-click σε folder background:
 mklink
   Create junction here
   Open Manager
-  Clear pending source
+  Clear pending selection
 ```
 
 ### Flow
 
 ```text
 Folder A
-  -> Set as source
+  -> Set as source (move)
 
 Destination folder background
   -> Create junction here
@@ -51,6 +52,22 @@ Result
   Original Folder A path becomes a junction
 ```
 
+Για folder που υπάρχει ήδη στη σωστή φυσική θέση και χρειάζεται μόνο νέο Junction:
+
+```text
+D:\Users\joty79\.agent-shared
+  -> Set as existing target
+
+C:\Users\joty79 folder background
+  -> Create junction here
+
+Result
+  C:\Users\joty79\.agent-shared -> D:\Users\joty79\.agent-shared
+  Το υπάρχον target δεν μετακινείται και δεν τροποποιείται.
+```
+
+Το `Create junction here` αρνείται να συνεχίσει αν το νέο link path υπάρχει ήδη ως file, folder ή link.
+
 ## Mklink Manager
 
 `MklinkManager.ps1` εμφανίζει μια WinForms διεπαφή με δύο καρτέλες (Tabs) για τη διαχείριση των junctions:
@@ -59,10 +76,10 @@ Result
 Σκανάρει τα junctions κάτω από το user profile και δείχνει status, category, junction path και target path.
 | Action | Behavior |
 |--------|----------|
-| `Create` | Χρησιμοποιεί το pending source και ζητά destination folder |
+| `Create` | Ολοκληρώνει το pending move-source ή existing-target flow και ζητά τον κατάλληλο destination/link parent folder |
 | `Revert` | Αφαιρεί το junction και μεταφέρει το target folder πίσω στο original path |
 | `Change` | Μεταφέρει το current target σε νέο destination και ξαναδημιουργεί το junction |
-| `Clear Source` | Καθαρίζει το saved pending source |
+| `Clear Selection` | Καθαρίζει το saved pending folder και action mode |
 | Row context menu | Open/copy paths, change destination, revert junction |
 
 ### 2. Snapshot Junctions
@@ -87,9 +104,12 @@ Result
 | Function | Purpose |
 |----------|---------|
 | `Set-MklinkPendingSource` | Αποθηκεύει source folder στο registry |
+| `Set-MklinkPendingExistingTarget` | Αποθηκεύει υπάρχον real target χωρίς να το μετακινήσει |
+| `Get-MklinkPendingSelection` | Διαβάζει pending path και mode (`MoveSource` ή `ExistingTarget`) |
 | `Get-MklinkPendingSource` | Διαβάζει το pending source |
 | `Clear-MklinkPendingSource` | Καθαρίζει το pending source |
 | `New-MklinkJunctionMove` | Μεταφέρει folder και δημιουργεί junction |
+| `New-MklinkJunctionForExistingTarget` | Δημιουργεί junction προς ήδη υπάρχον target χωρίς move |
 | `Revert-MklinkJunction` | Επαναφέρει junction σε κανονικό folder |
 | `Move-MklinkJunctionTarget` | Αλλάζει destination ενός junction |
 | `Get-UserJunctions` | Σκανάρει user profile για junctions |
@@ -156,6 +176,8 @@ mklink/
 ├── mklink_Revert.vbs     # Elevated Explorer wrapper for revert
 ├── mklink_Clear.vbs      # Explorer wrapper for clear
 ├── mklink.reg            # Context-menu registry artifact
+├── tests/
+│   └── Test-MklinkCore.ps1 # Cross-drive acceptance test for both creation modes
 ├── PROJECT_RULES.md      # Project memory
 └── README.md             # Documentation
 ```

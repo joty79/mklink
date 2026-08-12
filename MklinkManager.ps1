@@ -103,7 +103,7 @@ $lblSubtitle.Location  = [System.Drawing.Point]::new($(Scale 20), $(Scale 40))
 $script:pnlTitle.Controls.Add($lblSubtitle)
 
 $script:lblPending = [System.Windows.Forms.Label]::new()
-$script:lblPending.Text      = 'Pending source: none'
+$script:lblPending.Text      = 'Pending selection: none'
 $script:lblPending.Font      = $script:fontStatus
 $script:lblPending.ForeColor = $script:clrTextDim
 $script:lblPending.AutoSize  = $true
@@ -152,7 +152,7 @@ function New-TitleButton {
 $script:btnCreate       = New-TitleButton -Text 'Create' -Width 86
 $script:btnRevert       = New-TitleButton -Text 'Revert' -Width 86 -BackColor $script:clrOrange
 $script:btnChange       = New-TitleButton -Text 'Change' -Width 86 -BackColor $script:clrAccentDim
-$script:btnClearPending = New-TitleButton -Text 'Clear Source' -Width 110 -BackColor $script:clrBorder
+$script:btnClearPending = New-TitleButton -Text 'Clear Selection' -Width 118 -BackColor $script:clrBorder
 $script:btnRefresh      = New-TitleButton -Text 'Refresh' -Width 86
 
 # Snapshot Panel Buttons
@@ -190,10 +190,10 @@ function Add-ButtonHoverDescription {
 }
 
 # Attach descriptions
-Add-ButtonHoverDescription -Button $script:btnCreate -Description 'Move pending source to destination and create junction.'
+Add-ButtonHoverDescription -Button $script:btnCreate -Description 'Complete the pending move-source or existing-target junction action.'
 Add-ButtonHoverDescription -Button $script:btnRevert -Description 'Remove junction and revert target folder back to original path.'
 Add-ButtonHoverDescription -Button $script:btnChange -Description 'Move current target folder to a new destination and recreate junction.'
-Add-ButtonHoverDescription -Button $script:btnClearPending -Description 'Clear selected pending source path from registry.'
+Add-ButtonHoverDescription -Button $script:btnClearPending -Description 'Clear the pending folder selection and action mode.'
 Add-ButtonHoverDescription -Button $script:btnRefresh -Description 'Scan and refresh the list of live junctions.'
 
 Add-ButtonHoverDescription -Button $script:btnLoadSnapshot -Description 'Load a junction snapshot JSON file from disk.'
@@ -465,15 +465,16 @@ function Select-MklinkFolder {
 }
 
 function Update-PendingSourceStatus {
-    $pending = Get-MklinkPendingSource
+    $pending = Get-MklinkPendingSelection
     if ($pending) {
-        $script:lblPending.Text = "Pending source: $pending"
+        $pendingLabel = if ($pending.Mode -eq 'ExistingTarget') { 'existing target' } else { 'move source' }
+        $script:lblPending.Text = "Pending ${pendingLabel}: $($pending.Path)"
         $script:lblPending.ForeColor = $script:clrOrange
         $script:btnCreate.Enabled = $true
         $script:btnClearPending.Enabled = $true
     }
     else {
-        $script:lblPending.Text = 'Pending source: none'
+        $script:lblPending.Text = 'Pending selection: none'
         $script:lblPending.ForeColor = $script:clrTextDim
         $script:btnCreate.Enabled = $false
         $script:btnClearPending.Enabled = $false
@@ -481,22 +482,34 @@ function Update-PendingSourceStatus {
 }
 
 function Invoke-CreateFromPendingSource {
-    $source = Get-MklinkPendingSource
-    if (-not $source) {
-        Show-MklinkError -Message 'No pending source selected from Explorer.'
+    $pending = Get-MklinkPendingSelection
+    if (-not $pending) {
+        Show-MklinkError -Message 'No pending folder selection from Explorer.'
         return
     }
 
-    $targetDir = Select-MklinkFolder -Description 'Select destination folder for the pending source'
-    if (-not $targetDir) { return }
-
-    $sourceName = Split-Path -Path $source -Leaf
-    $previewTarget = Join-Path $targetDir $sourceName
-    $message = "Move source:`n$source`n`nCreate junction at original path pointing to:`n$previewTarget"
-    if (-not (Confirm-MklinkAction -Message $message)) { return }
-
     try {
-        $result = New-MklinkJunctionMove -SourcePath $source -TargetDirectory $targetDir
+        if ($pending.Mode -eq 'ExistingTarget') {
+            $linkParent = Select-MklinkFolder -Description 'Select the parent folder where the new junction will be created'
+            if (-not $linkParent) { return }
+
+            $linkPath = Join-Path $linkParent (Split-Path -Path $pending.Path -Leaf)
+            $message = "Keep existing target in place:`n$($pending.Path)`n`nCreate new junction:`n$linkPath"
+            if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+            $result = New-MklinkJunctionForExistingTarget -TargetPath $pending.Path -LinkParentDirectory $linkParent
+        }
+        else {
+            $targetDir = Select-MklinkFolder -Description 'Select destination folder for the pending move source'
+            if (-not $targetDir) { return }
+
+            $previewTarget = Join-Path $targetDir (Split-Path -Path $pending.Path -Leaf)
+            $message = "Move source:`n$($pending.Path)`n`nCreate junction at original path pointing to:`n$previewTarget"
+            if (-not (Confirm-MklinkAction -Message $message)) { return }
+
+            $result = New-MklinkJunctionMove -SourcePath $pending.Path -TargetDirectory $targetDir
+        }
+
         $script:lblStatus.Text = "Created: $($result.LinkPath) -> $($result.TargetPath)"
         Update-PendingSourceStatus
         Load-JunctionData
@@ -1093,7 +1106,7 @@ $script:btnChange.Add_Click({ Invoke-ChangeSelectedDestination })
 $script:btnClearPending.Add_Click({
     Clear-MklinkPendingSource
     Update-PendingSourceStatus
-    $script:lblStatus.Text = 'Pending source cleared.'
+    $script:lblStatus.Text = 'Pending selection cleared.'
 })
 
 $script:btnSaveSnapshot.Add_Click({

@@ -14,24 +14,36 @@ if (-not $TargetDir -and $args.Count -gt 0) {
 $errorLogPath = Get-MklinkDataPath -SubFolder 'logs' -FileName 'error_log.txt'
 
 try {
-    $sourcePath = Get-MklinkPendingSource
-    if (-not $sourcePath) {
-        Write-Host 'No source folder selected!' -ForegroundColor Red
-        Write-Host "Right-click a folder and select 'mklink > Set as source' first." -ForegroundColor Yellow
+    $pending = Get-MklinkPendingSelection
+    if (-not $pending) {
+        Write-Host 'No folder selection is pending!' -ForegroundColor Red
+        Write-Host "Right-click a folder and choose 'Set as source (move)' or 'Set as existing target' first." -ForegroundColor Yellow
         Start-Sleep 3
         exit
     }
 
     Write-Host ''
-    Write-Host '=== mklink Move & Junction ===' -ForegroundColor Cyan
-    Write-Host ''
-    Write-Host "Source: $sourcePath" -ForegroundColor White
-    Write-Host "Destination folder: $TargetDir" -ForegroundColor White
-    Write-Host ''
+    if ($pending.Mode -eq 'ExistingTarget') {
+        Write-Host '=== mklink Existing Target ===' -ForegroundColor Cyan
+        Write-Host ''
+        Write-Host "Existing target: $($pending.Path)" -ForegroundColor White
+        Write-Host "Junction parent: $TargetDir" -ForegroundColor White
+        Write-Host ''
 
-    $result = New-MklinkJunctionMove -SourcePath $sourcePath -TargetDirectory $TargetDir
+        $result = New-MklinkJunctionForExistingTarget -TargetPath $pending.Path -LinkParentDirectory $TargetDir
+        Write-Host '[OK] Existing target kept in place and junction created.' -ForegroundColor Green
+    }
+    else {
+        Write-Host '=== mklink Move & Junction ===' -ForegroundColor Cyan
+        Write-Host ''
+        Write-Host "Source: $($pending.Path)" -ForegroundColor White
+        Write-Host "Destination folder: $TargetDir" -ForegroundColor White
+        Write-Host ''
 
-    Write-Host '[OK] Folder moved and junction created.' -ForegroundColor Green
+        $result = New-MklinkJunctionMove -SourcePath $pending.Path -TargetDirectory $TargetDir
+        Write-Host '[OK] Folder moved and junction created.' -ForegroundColor Green
+    }
+
     Write-Host "Junction: $($result.LinkPath)" -ForegroundColor White
     Write-Host "Target:   $($result.TargetPath)" -ForegroundColor White
     Start-Sleep 2

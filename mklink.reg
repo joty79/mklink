@@ -23,33 +23,40 @@ Windows Registry Editor Version 5.00
 "SubCommands"=""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource]
-"MUIVerb"="Set as source"
+"MUIVerb"="Set as source (move)"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\01_setSource\command]
-@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Silent.vbs\" \"%V\""
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Silent.vbs\" \"%V\" \"MoveSource\""
 
-[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_revert]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_setExistingTarget]
+"MUIVerb"="Set as existing target"
+"Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_setExistingTarget\command]
+@="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Silent.vbs\" \"%V\" \"ExistingTarget\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_revert]
 "MUIVerb"="Revert junction"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 "HasLUAShield"=""
 
-[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\02_revert\command]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_revert\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Revert.vbs\" \"%V\""
 
-[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_manager]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_manager]
 "MUIVerb"="Open Manager"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 "CommandFlags"=dword:00000020
 
-[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\03_manager\command]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_manager\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\MklinkManager.vbs\""
 
-[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_clear]
-"MUIVerb"="Clear pending source"
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\05_clear]
+"MUIVerb"="Clear pending selection"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
-[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\04_clear\command]
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\mklink\shell\05_clear\command]
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\mklink_Clear.vbs\""
 
 ; -------- FOLDER BACKGROUND RIGHT-CLICK SUBMENU --------
@@ -76,7 +83,7 @@ Windows Registry Editor Version 5.00
 @="wscript.exe \"D:\\Users\\joty79\\scripts\\mklink\\MklinkManager.vbs\""
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\03_clear]
-"MUIVerb"="Clear pending source"
+"MUIVerb"="Clear pending selection"
 "Icon"="D:\\Users\\joty79\\scripts\\mklink\\.assets\\icons\\mklink.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\mklink\shell\03_clear\command]

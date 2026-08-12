@@ -1,0 +1,14 @@
+*.gitattributes text eol=lf
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=lf
+*.reg text eol=crlf
+*.vbs text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ico binary
+*.exe binary

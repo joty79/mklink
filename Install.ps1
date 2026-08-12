@@ -96,8 +96,7 @@ $script:ProfileJson = @'
     "logs",
     "state",
     "mklink.log",
-    "error_log.txt",
-    "data"
+    "error_log.txt"
   ],
   "uninstall_preserve_files": [
     "Install.ps1"
@@ -139,7 +138,7 @@ $script:ProfileJson = @'
       "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\01_setSource",
       "name": "MUIVerb",
       "type": "REG_SZ",
-      "value": "Set as source"
+      "value": "Set as source (move)"
     },
     {
       "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\01_setSource",
@@ -151,70 +150,88 @@ $script:ProfileJson = @'
       "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\01_setSource\\command",
       "name": "(default)",
       "type": "REG_SZ",
-      "value": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\""
+      "value": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\" \"MoveSource\""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_revert",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_setExistingTarget",
+      "name": "MUIVerb",
+      "type": "REG_SZ",
+      "value": "Set as existing target"
+    },
+    {
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_setExistingTarget",
+      "name": "Icon",
+      "type": "REG_SZ",
+      "value": "{InstallRoot}\\.assets\\icons\\mklink.ico"
+    },
+    {
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_setExistingTarget\\command",
+      "name": "(default)",
+      "type": "REG_SZ",
+      "value": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\" \"ExistingTarget\""
+    },
+    {
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_revert",
       "name": "MUIVerb",
       "type": "REG_SZ",
       "value": "Revert junction"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_revert",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_revert",
       "name": "Icon",
       "type": "REG_SZ",
       "value": "{InstallRoot}\\.assets\\icons\\mklink.ico"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_revert",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_revert",
       "name": "HasLUAShield",
       "type": "REG_SZ",
       "value": ""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_revert\\command",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_revert\\command",
       "name": "(default)",
       "type": "REG_SZ",
       "value": "wscript.exe \"{InstallRoot}\\mklink_Revert.vbs\" \"%V\""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_manager",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_manager",
       "name": "MUIVerb",
       "type": "REG_SZ",
       "value": "Open Manager"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_manager",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_manager",
       "name": "Icon",
       "type": "REG_SZ",
       "value": "{InstallRoot}\\.assets\\icons\\mklink.ico"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_manager",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_manager",
       "name": "CommandFlags",
       "type": "REG_DWORD",
       "value": "32"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_manager\\command",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_manager\\command",
       "name": "(default)",
       "type": "REG_SZ",
       "value": "wscript.exe \"{InstallRoot}\\MklinkManager.vbs\""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_clear",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\05_clear",
       "name": "MUIVerb",
       "type": "REG_SZ",
-      "value": "Clear pending source"
+      "value": "Clear pending selection"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_clear",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\05_clear",
       "name": "Icon",
       "type": "REG_SZ",
       "value": "{InstallRoot}\\.assets\\icons\\mklink.ico"
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_clear\\command",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\05_clear\\command",
       "name": "(default)",
       "type": "REG_SZ",
       "value": "wscript.exe \"{InstallRoot}\\mklink_Clear.vbs\""
@@ -289,7 +306,7 @@ $script:ProfileJson = @'
       "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink\\shell\\03_clear",
       "name": "MUIVerb",
       "type": "REG_SZ",
-      "value": "Clear pending source"
+      "value": "Clear pending selection"
     },
     {
       "key": "HKCU\\Software\\Classes\\Directory\\Background\\shell\\mklink\\shell\\03_clear",
@@ -323,20 +340,25 @@ $script:ProfileJson = @'
     {
       "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\01_setSource\\command",
       "name": "(default)",
-      "expected": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\""
+      "expected": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\" \"MoveSource\""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_revert\\command",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\02_setExistingTarget\\command",
+      "name": "(default)",
+      "expected": "wscript.exe \"{InstallRoot}\\mklink_Silent.vbs\" \"%V\" \"ExistingTarget\""
+    },
+    {
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_revert\\command",
       "name": "(default)",
       "expected": "wscript.exe \"{InstallRoot}\\mklink_Revert.vbs\" \"%V\""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\03_manager\\command",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_manager\\command",
       "name": "(default)",
       "expected": "wscript.exe \"{InstallRoot}\\MklinkManager.vbs\""
     },
     {
-      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\04_clear\\command",
+      "key": "HKCU\\Software\\Classes\\Directory\\shell\\mklink\\shell\\05_clear\\command",
       "name": "(default)",
       "expected": "wscript.exe \"{InstallRoot}\\mklink_Clear.vbs\""
     },
@@ -508,6 +530,17 @@ function Confirm([string]$Prompt) {
     $response = Read-Host "$Prompt [y/N]"
     if ($null -eq $response) { return $false }
     return ($response.Trim().ToLowerInvariant() -eq 'y')
+}
+
+function Complete-InstallerRun([int]$ExitCode) {
+    if ($ExitCode -ne 0 -and -not $script:HasCliArgs) {
+        Write-Host ''
+        Write-Host ("Installer failed with exit code {0}." -f $ExitCode) -ForegroundColor Red
+        Write-Host ("Log: {0}" -f $script:InstallerLogPath) -ForegroundColor Yellow
+        Write-Host 'Press Enter to close this window...' -ForegroundColor Gray
+        try { [void](Read-Host) } catch {}
+    }
+    exit $ExitCode
 }
 
 function Test-IsElevated {
@@ -911,7 +944,7 @@ function ResolveGitHubRefAuto {
 
     $info = Get-GitHubRemoteInfo -Repo $GitHubRepo
     $preferred = [System.Collections.Generic.List[string]]::new()
-    foreach ($candidate in @($info.DefaultBranch, 'master', [string](Get-P 'github_ref' ''), 'latest')) {
+    foreach ($candidate in @([string](Get-P 'github_ref' ''), $info.DefaultBranch, 'main', 'master', 'latest')) {
         $name = NormalizeGitHubRef $candidate
         if (-not [string]::IsNullOrWhiteSpace($name) -and -not $preferred.Contains($name)) {
             $preferred.Add($name)
@@ -1056,6 +1089,8 @@ function Deploy([string]$SourceRoot, [string]$InstallRoot) {
 
 function PatchWrappers([string]$InstallRoot) {
     foreach ($p in @((Get-P 'wrapper_patches' @()))) {
+        if ($null -eq $p) { continue }
+        if (-not ($p.PSObject.Properties['file']) -or -not ($p.PSObject.Properties['regex'])) { continue }
         $fileRel = [string]$p.file; $regex = [string]$p.regex; $repRaw = [string]$p.replacement
         if ([string]::IsNullOrWhiteSpace($fileRel) -or [string]::IsNullOrWhiteSpace($regex)) { continue }
         $target = Join-Path $InstallRoot $fileRel
@@ -1492,12 +1527,12 @@ function PreparePackageSource([ValidateSet('Install', 'Update')] [string]$Mode) 
 
 if (-not $script:HasCliArgs) { $menuAction = ShowMenu; if ($menuAction -eq 'Exit') { exit 0 }; $Action = $menuAction }
 switch ($Action) {
-    'Install' { PreparePackageSource -Mode 'Install'; if (-not (Confirm "Install $($script:DisplayName) to '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; exit (RunInstallOrUpdate -Mode 'Install') }
-    'InstallGitHub' { $PackageSource = 'GitHub'; EnsureGitHubRefResolved; Write-Host ("Using GitHub ref: {0}" -f $GitHubRef) -ForegroundColor DarkCyan; if (-not (Confirm "Install $($script:DisplayName) to '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; exit (RunInstallOrUpdate -Mode 'Install') }
-    'Update' { PreparePackageSource -Mode 'Update'; if (-not (Confirm "Update existing $($script:DisplayName) at '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; exit (RunInstallOrUpdate -Mode 'Update') }
-    'UpdateGitHub' { $PackageSource = 'GitHub'; EnsureGitHubRefResolved; Write-Host ("Using GitHub ref: {0}" -f $GitHubRef) -ForegroundColor DarkCyan; if (-not (Confirm "Update existing $($script:DisplayName) at '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; exit (RunInstallOrUpdate -Mode 'Update') }
-    'Uninstall' { if (-not (Confirm "Uninstall $($script:DisplayName) from '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; exit (RunUninstall) }
-    'RegistryRepair' { exit (RunRegistryRepair) }
+    'Install' { PreparePackageSource -Mode 'Install'; if (-not (Confirm "Install $($script:DisplayName) to '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; Complete-InstallerRun (RunInstallOrUpdate -Mode 'Install') }
+    'InstallGitHub' { $PackageSource = 'GitHub'; EnsureGitHubRefResolved; Write-Host ("Using GitHub ref: {0}" -f $GitHubRef) -ForegroundColor DarkCyan; if (-not (Confirm "Install $($script:DisplayName) to '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; Complete-InstallerRun (RunInstallOrUpdate -Mode 'Install') }
+    'Update' { PreparePackageSource -Mode 'Update'; if (-not (Confirm "Update existing $($script:DisplayName) at '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; Complete-InstallerRun (RunInstallOrUpdate -Mode 'Update') }
+    'UpdateGitHub' { $PackageSource = 'GitHub'; EnsureGitHubRefResolved; Write-Host ("Using GitHub ref: {0}" -f $GitHubRef) -ForegroundColor DarkCyan; if (-not (Confirm "Update existing $($script:DisplayName) at '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; Complete-InstallerRun (RunInstallOrUpdate -Mode 'Update') }
+    'Uninstall' { if (-not (Confirm "Uninstall $($script:DisplayName) from '$InstallPath'?")) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }; Complete-InstallerRun (RunUninstall) }
+    'RegistryRepair' { Complete-InstallerRun (RunRegistryRepair) }
     'DownloadLatest' {
         $downloadPrompt = if ($NoSelfRelaunch) {
             "Download latest $($script:DisplayName) into '$PSScriptRoot'?"
@@ -1506,7 +1541,7 @@ switch ($Action) {
             "Download latest $($script:DisplayName) into '$PSScriptRoot' and relaunch the updated installer?"
         }
         if (-not (Confirm $downloadPrompt)) { Write-Host 'Cancelled.' -ForegroundColor Yellow; exit 0 }
-        exit (RunDownloadLatest)
+        Complete-InstallerRun (RunDownloadLatest)
     }
     'OpenInstallDirectory' { if (-not (Test-Path -LiteralPath $InstallPath)) { Write-Host ("Install directory not found: {0}" -f $InstallPath) -ForegroundColor Yellow; exit 1 }; Start-Process explorer.exe -ArgumentList $InstallPath; exit 0 }
     'OpenInstallLogs' { $logFile = Join-Path $InstallPath 'logs\\installer.log'; $logDir = Split-Path -Path $logFile -Parent; EnsureDir $logDir; if (Test-Path -LiteralPath $logFile) { Start-Process notepad.exe -ArgumentList $logFile } else { Start-Process explorer.exe -ArgumentList $logDir }; exit 0 }

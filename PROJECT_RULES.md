@@ -12,7 +12,7 @@
 - **2026-05-11:** Introduced shared `MklinkCore.ps1` for all junction operations.
   - Problem: Explorer scripts and Manager needed create/revert/change behavior without duplicated move logic.
   - Root cause: Initial implementation was one-way and context-menu focused, while Manager only displayed junctions.
-  - Guardrail/rule: Keep destructive junction operations in `MklinkCore.ps1`; wrappers and GUI must call the shared functions.
+  - Guardrail/rule: Keep destructive junction operations in `MklinkCore.ps1`; wrappers and GUI must call the shared functions. Pending creation has two explicit modes: `MoveSource` moves a real folder before linking its original path, while `ExistingTarget` keeps the selected real target in place and creates a same-name Junction only at a nonexistent link path.
   - Files affected: `MklinkCore.ps1`, `mklinkSource.ps1`, `mklinkTarget.ps1`, `mklinkRevert.ps1`, `mklinkClearSource.ps1`, `MklinkManager.ps1`, `mklink.reg`.
   - Validation/tests run: PowerShell parser validation for edited `.ps1` files.
 

@@ -2,7 +2,11 @@
 
 param(
     [Parameter(Position = 0)]
-    [string]$FolderPath
+    [string]$FolderPath,
+
+    [Parameter(Position = 1)]
+    [ValidateSet('MoveSource', 'ExistingTarget')]
+    [string]$Mode = 'MoveSource'
 )
 
 if (-not $FolderPath -and $args.Count -gt 0) {
@@ -12,7 +16,12 @@ if (-not $FolderPath -and $args.Count -gt 0) {
 . "$PSScriptRoot\MklinkCore.ps1"
 
 try {
-    [void](Set-MklinkPendingSource -SourcePath $FolderPath)
+    if ($Mode -eq 'ExistingTarget') {
+        [void](Set-MklinkPendingExistingTarget -TargetPath $FolderPath)
+    }
+    else {
+        [void](Set-MklinkPendingSource -SourcePath $FolderPath)
+    }
 }
 catch {
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
